@@ -61,9 +61,6 @@ COPY stage/flink-json-1.20.2.jar                        /opt/flink/lib/flink-jso
 COPY stage/flink-connector-jdbc-3.3.0-1.20.jar          /opt/flink/lib/flink-connector-jdbc-3.3.0-1.20.jar
 
 RUN echo "--> Install Flink JARs: => Open Table Formats"
-COPY stage/paimon-flink-1.20-1.2.0.jar                  /opt/flink/lib/paimon-flink-1.20-1.2.0.jar
-COPY stage/paimon-s3-1.3.1.jar                          /opt/flink/lib/paimon-s3-1.3.1.jar 
-
 COPY stage/iceberg-flink-1.20-1.9.1.jar                 /opt/flink/lib/iceberg-flink-1.20-1.9.1.jar
 COPY stage/iceberg-flink-runtime-1.20-1.9.1.jar         /opt/flink/lib/iceberg-flink-runtime-1.20-1.9.1.jar
 COPY stage/iceberg-aws-bundle-1.9.1.jar                 /opt/flink/iceberg-aws-bundle-1.9.1.jar

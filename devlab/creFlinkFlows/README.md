@@ -10,11 +10,8 @@ Will create the various catalogs and databases.
 
  - c_iceberg - Apache Polaris REST based
    - finflow
+   - fraud
 
- - c_paimon - Apache Flink JDBC based
-   - finflow
-
- - c_fluss - Apache Flunns based
 
 ### 2.1.creCdc.sql
 
@@ -23,10 +20,6 @@ This will create our transciant CDC based tables which will connect to our Postg
  - accountholders
 
  - transactions 
-
-### 3.1.creEmbTargets.sql
-
-Create our output tables that will recieve the "vectorized/embedding vectors" enriced records.
 
 ### 3.2.creTarget.sql
 

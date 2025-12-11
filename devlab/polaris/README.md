@@ -11,7 +11,7 @@ See the `.env` and the below specific variables.
 ```bash
 # PostgreSQL Catalog Store
 #
-COMPOSE_PROJECT_NAME        = aiembed
+COMPOSE_PROJECT_NAME        = polaris
 REPO_NAME                   = georgelza
 
 # PostgreSQL CDC Source
@@ -110,21 +110,6 @@ docker exec -it postgrescat psql -U dbadmin -d findept
 # Exit
 \q
 
-# Connect to PostgreSQL  => Flink JDBC Data
-docker exec -it postgrescat psql -U dbadmin -d flink_catalog
-
-# List all schemas
-\dn
-
-# Expected output:
-#          Name          |  Owner  
-# -----------------------+---------
-#  paimon_catalog        | dbadmin
-#  public                | dbadmin
-
-# Exit
-\q
-
 ```
 
 
@@ -205,31 +190,6 @@ curl -X POST http://localhost:8181/api/management/v1/catalogs \
 }' | jq
 ```
 
-```bash
-# Create (paimon based) catalog via REST API (optional - Flink will create via REST)
-# We specify a "specified" folder location under our MinIO warehouse root
-
-curl -X POST http://localhost:8181/api/management/v1/catalogs \
-  -H "Authorization: Bearer ${TOKEN}" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "name": "paimoncat",
-    "type": "INTERNAL",
-    "properties": {
-      "default-base-location": "s3://warehouse/paimon"
-    },
-    "storageConfigInfo": {
-      "storageType": "S3",
-      "pathStyleAccess": true,
-      "allowedLocations": ["s3://warehouse/paimon"]
-    }
-}' | jq
-
-# List configured catalogs
-curl -X GET http://localhost:8181/api/management/v1/catalogs \
-  -H "Authorization: Bearer ${TOKEN}" | jq
-```
-
 
 ### 7. Create Catalog Namespace 
 
@@ -245,15 +205,6 @@ curl -X POST http://localhost:8181/api/catalog/v1/icebergcat/namespaces \
 curl -X GET http://localhost:8181/api/catalog/v1/icebergcat/namespaces \
   -H "Authorization: Bearer $TOKEN" | jq
 
-
-# 2. Create 'finflow' Namespace inside paimoncat catalog
-curl -X POST http://localhost:8181/api/catalog/v1/paimoncat/namespaces \
-    -H "Authorization: Bearer ${TOKEN}" \
-    -H 'Content-Type: application/json' \
-    -d '{"namespace": ["finflow"], "properties": {"description": "Paimon catalog database"}}' | jq
-
-curl -X GET http://localhost:8181/api/catalog/v1/paimoncat/namespaces \
-  -H "Authorization: Bearer $TOKEN" | jq
 ```
 
 
@@ -278,27 +229,7 @@ CREATE CATALOG c_iceberg WITH (
 USE CATALOG c_iceberg;
 CREATE DATABASE IF NOT EXISTS finflow;
 
-
--- 2. Create c_paimon catalog (Polaris REST), This will be using Generic Table capabilities of Polaris.
-CREATE CATALOG c_paimon WITH (
-   'type'='paimon'
-  ,'catalog-type'='rest'
-  ,'uri'='http://polaris:8181/api/catalog'
-  ,'warehouse'='paimoncat'
-  ,'oauth2-server-uri'='http://polaris:8181/api/catalog/v1/oauth/tokens'
-  ,'credential'='root:s3cr3t'
-  ,'scope'='PRINCIPAL_ROLE:ALL'
-  ,'s3.endpoint'='http://minio:900'
-  ,'s3.access-key-id'='mnadmin'
-  ,'s3.secret-access-key'='mnpassword'
-  ,'s3.path-style-access'='true'
-);
-
-USE CATALOG c_paimon;
-CREATE DATABASE IF NOT EXISTS finflow;
-
-
--- 3. Create CDC source tables in default_catalog
+-- 2. Create CDC source tables in default_catalog
 -- Note: These are NOT a catalog, just table definitions with postgres-cdc connector
 USE CATALOG default_catalog;
 CREATE DATABASE IF NOT EXISTS demog;
@@ -323,62 +254,51 @@ PostgreSQL Server: `postgrescat`
 | `polaris_schema` | Polaris metadata storage | Apache Polaris (Iceberg) |
 | `public`  | Default PostgreSQL schema | General use |
 
-### 2. DB: flink_catalog
 
-| Schema | Purpose | Used By |
-|--------|---------|---------|
-| `paimon_catalog` | Flink metadata storage | Apache Flink JDBC Catalog (Paimon) |
-| `public`  | Default PostgreSQL schema | General use |
-
-
-### 3. Catalog Architecture
+### 2. Catalog Architecture
 
 ```
 ┌─────────────────────────────────────────────────────────┐
 │                     Flink SQL Engine                    │
-└─────────────────────────────────────────────────────────┘
-         │                  │                    │
-         │                  │                    │
-    ┌────▼────┐       ┌─────▼─────┐        ┌─────▼──────────┐
-    │c_iceberg│       │ c_paimon  │        │ default_catalog│
-    │ (REST)  │       │  (JDBC)   │        │ (in-memory)    │
-    └────┬────┘       └─────┬─────┘        └──────┬─────────┘
-         │                  │                     │
-         │                  │                     │
-         └──────┐           └─┐                   │
-                │             │                   │
-           ┌────▼────┐   ┌────▼────┐        ┌─────▼──────┐
-           │ Polaris │   │ Flink   │        │demog DB:   │
-           │  REST   │   │  JDBC   │        │CDC table   │
-           │  API    │   │         │        │definitions │
-           └────┬────┘   └────┬────┘        │(reference  │
-                │             │             │PostgresCDC)│
-                │             │             └────────────┘
-           ┌────▼─────────────▼───────────────────┐
-           │       PostgresCAT Pg Server          │
-           │                                      │
-           │  DB:findept         DB:flink_catalog │
-           │  polaris_schema     paimon_catalog   │
-           │  (polaris REST      (JDBC based      │
-           │   based catalog)     catalog)        │
-           └────┬───────────────────┬─────────────┘
+└───────────────┬───────────────────────────┬─────────────┘
+                │                           │
+                │                           │
+           ┌────▼────┐                ┌─────▼──────────┐
+           │c_iceberg│                │ default_catalog│
+           │ (REST)  │                │ (in-memory)    │
+           └────┬────┘                └──────┬─────────┘
+                │                            │
+                │                            │
+                │                            │
+                │                            │
+           ┌────▼────┐                 ┌─────▼──────┐
+           │ Polaris │                 │demog DB:   │
+           │  REST   │                 │CDC table   │
+           │  API    │                 │definitions │
+           └────┬────┘                 │(reference  │
+                └─────────────┐        │PostgresCDC)│
+                              │        └────────────┘
+           ┌──────────────────▼─────────────────┐
+           │       PostgresCAT Pg Server        │
+           │                                    │
+           │          DB:findept                │
+           │        polaris_schema              │
+           │     (polaris REST based catalog)   │
+           └────┬───────────────────┬───────────┘
                 │                   │
                 │                   │
            ┌────▼───────────────────▼─────┐
            │      MinIO S3 Storage        │
            │                              │
            │     warehouse/iceberg/       │
-           │     warehouse/paimon/        │
            └────┬───────────────────┬─────┘
                 │                   │
                 │                   │
            ┌────▼───────────────────▼───────┐
            │           -> c_iceberg         │
+           │                                │
            │     warehouse/iceberg/finflow  │
            │     warehouse/iceberg/fraud    │
-           │                                │
-           │           -> c_paimon          │
-           │     warehouse/paimon/finflow   │
            └────────────────────────────────┘
 
 ```
@@ -388,12 +308,9 @@ PostgreSQL Server: `postgrescat`
 ```
 warehouse/
 │
-├── iceberg/          # c_iceberg Iceberg based catalog housing Iceberg table data and metadata
-│   └── finflow/      # finflow database/namespace
-│   └── fraud/        # fraud database/namespace
-│
-└── paimon/           # c_paimon Paimon based catalog housing Paimon table data and metadata
+└── iceberg/          # c_iceberg Iceberg based catalog housing Iceberg table data and metadata
     └── finflow/      # finflow database/namespace
+    └── fraud/        # fraud database/namespace
 
 ```
 
@@ -403,9 +320,6 @@ warehouse/
   
 - Apache Polaris stores metadata in `polaris_schema` schema
 
-- c_paimon uses Apache Flink JDBC based catalog interface
-
-- Apache Flink stores metadata in `paimon_catalog` schema
-
 - CDC tables are just connector definitions, not a catalog
+
 - CDC tables reference external PostgreSQL database directly
