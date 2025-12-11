@@ -40,7 +40,7 @@ build:
 
 run_base:
 	@echo "🚀 Starting Polaris Catalog LAB configuration (Polaris, PostgreSQL & MinIO)..."
-	docker compose -f docker-compose-basic.yml -p aiembed up -d \
+	docker compose -f docker-compose-basic.yml -p polaris up -d \
  		postgrescat \
 		minio minio-client \
 		polaris polaris-bootstrap polaris-setup \
@@ -50,7 +50,7 @@ run_base:
 
 run:
 	@echo "🚀 Starting All services (Flink, Polaris, PostgreSQL & MinIO)..."
-	docker compose -f docker-compose-flink.yml -p aiembed up -d \
+	docker compose -f docker-compose-flink.yml -p polaris up -d \
 		jobmanager taskmanager \
  		postgrescat postgrescdc \
 		minio minio-client \
