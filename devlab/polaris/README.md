@@ -1,6 +1,6 @@
 ## Polaris based Catalog, configured with PostgreSQL persistent store
 
-For our [Apache Iceberg](https://iceberg.apache.org) based tables we'll be using a [Apache Polaris](https://polaris.apache.org) as our Catalog store.
+For our [Apache Iceberg](https://iceberg.apache.org) based tables we'll be using a [Apache Polaris (incubating)](https://polaris.apache.org) as our Catalog store.
 
 The basic verification/qualification of our build can be found in `docker-compose-basic.yaml`, this can be started up on it's own using `make run_basic`. The catlaog has been configured to use PostgreSQL as persistant store.
 
@@ -279,7 +279,7 @@ USE CATALOG c_iceberg;
 CREATE DATABASE IF NOT EXISTS finflow;
 
 
--- 2. Create c_paimon catalog (Polaris REST)
+-- 2. Create c_paimon catalog (Polaris REST), This will be using Generic Table capabilities of Polaris.
 CREATE CATALOG c_paimon WITH (
    'type'='paimon'
   ,'catalog-type'='rest'

@@ -1,12 +1,23 @@
 ## Apache Polaris (incubating) / Postgres for Persistence and Apache Flink 
 
+The following is a little explore of [Apache Polaris (incubating)](https://polaris.apache.org) as a Catalog store for Lakehouse environments, originally primarily Apache Iceberg as part of a Apache Flink environment.
 
+The requirement originally started with me creating a application which created two data products, `accountholders` and `transactions`.
+These are inserted into an Postgres database called demog.
 
-1. Consume from PostgreSQL => Apacke Flink tables using CDC
+Apache Flink was then to be configured to consume these using the Apache Flink CDC framework, making the the data available for processing.
 
-2. -> Push to Iceberg Tables => Apache Polaris (incubating) Catalog - Persistence via PosgreSQL
+Along the way I decided instead of using Hive Metastore (HMS) as my normal catalog, I'd explore Apache Polaris (incubating) and it's REST interface.
 
-3. -> Push to Apache Paimon Tabes => JDBC Catalog - Persistence via PosgreSQL
+Apache Polaris (incubating) is primarily a Iceberg catalog, but does offer `Generic Table` functionality, enabling it to store metadata for tables other than Apache Iceberg, see: [What is a Generic Table?](https://polaris.apache.org/releases/1.2.0/generic-table/#what-is-a-generic-table).
+
+Also important for me was catalog persistence. [Apache Polaris (incubating)](https://polaris.apache.org) natively come with PostgreSQL libraries.
+
+Deviating a little bit... Not all implimentations/projects, might utilize Apache Iceberg for all the data, so we said, as we're using Apache Flink and there is a strong relationship in the real time streaming world with Apache Paimon how would we manage/accommodate "caalog services" for it. This is where we now have 2 options. 
+
+1. The `Generic Table` functionality from Apache Polaris or
+
+2. Apache Paimon's support for a metastore: `jdbc` which allows it to store metadata directly into any jdbc compliant datastore, and as we're already using PostgreSQL is just implied an additional database or schema in our PostgreSQL environment.
 
 
 BLOG: []()
@@ -14,28 +25,38 @@ BLOG: []()
 GIT REPO: [Polaris_Pg_Flink](https://github.com/georgelza/Polaris_pg_flink)
 
 
-## Deployment
+## The stack:
 
-- Start basic stack
+### Building and Running
+
+as defined in `devlab/Makefile` to run environment, (this will use `.env`).
+
+The first time, first build the required containers.
+
+- `cd ../devlab`
+
+- `make build`
+
+Then you can run, either of the following 2 options. both files will utilize the `.env` file located in `<Project Root>/devlab`.
+
+Minimal Environment (Polaris, Postgres and MinIO), which will use `<Project Root>/devlab/docker-compose-basic.yml`
+
+- `make run_base`
+
+Full Environment (Polaris, Flink, Postgres and MinIO), which will use `<Project Root>/devlab/docker-compose-flink.yml`
+
+- `make run`
+
+
+During the startup cycle of our PostgreSQL datastore it will run it's bootstrap init script which will create the following 2 tables.
+For the purpose of this blog i've simplified their structure.
+
+- `accountholders` 
+
+- `transactions`
   
-  - Execute `make run_basic` as defined in `devlab/Makefile` to run environment.
 
-- Start full stack
-    
-    `To run the full stack take note you need to have build the "expanded Flink image" as defined in infrastructure/flink
-
-  - Execute `make run` as defined in `devlab/Makefile` to run environment.
-
-- `<Project Root>/devlab/docker-compose-flink.yml` which can be brought online by executing below, (this will use `.env`).
-
-  - our Postgres init script will create 2 tables in our postgrescdc datastore: (`accountholders` and `transactions`).
-  
-
-- Next is moving the data into one or other direction.
-  - You can either move the data directly to a Apache Iceberg or a Apache Paimon based table, stored on our MinIO based Object store.
-
-
-## Stack
+### Software/package versions
 
 The following stack is deployed using one of the provided  `<Project Root>/devlab/docker-compose-*.yaml` files as per above.
 
@@ -54,6 +75,13 @@ The following stack is deployed using one of the provided  `<Project Root>/devla
 - [MinIO](https://www.min.io) - Project has gone into Maintenance mode... 
 
 
+### Management interfaces
+
+- Polaris: http://localhost:8181 (Client API)
+- Polaris: http://localhost:8181 (Management API)
+- Flink UI: http://localhost:8084 (Console)
+- MinIO API: http://localhost:9000 (Client API)
+- MinIO UI: http://localhost:9001 (Console, mnadmin/mnpassword)
 
 
 ### By: George Leonard

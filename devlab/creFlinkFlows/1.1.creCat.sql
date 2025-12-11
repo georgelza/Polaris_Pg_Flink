@@ -72,7 +72,7 @@ CREATE DATABASE IF NOT EXISTS c_paimon.finflow;
 SHOW DATABASES;
 
 -- OR - Need to figure out how to use generic Tables for Polaris.
---
+
 -- Paimon based REST Catalog stored inside PostgreSQL database using Polaris as catalog store
 -- server: postgrescat
 -- db: findept

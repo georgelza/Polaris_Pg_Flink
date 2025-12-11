@@ -31,8 +31,6 @@ services:
       - ENV_ROOTLOG_LEVEL=DEBUG
       - ENV_FLINKLOG_LEVEL=INFO
     volumes:
-      - ./pyflink:/pyflink                          # PyFlink scripts
-      - ./scripts:/scripts                          # Fluss Tiering Job
 
       - ./data/flink/logs:/opt/flink/log
       - ./data/flink/checkpoints:/opt/flink/checkpoints
