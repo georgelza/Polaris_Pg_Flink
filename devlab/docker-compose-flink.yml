@@ -179,7 +179,7 @@ services:
           "endpoint":"http://localhost:9000",
           "endpointInternal":"'$$MINIO_ENDPOINT'",
           "pathStyleAccess":true}';
-        export STORAGE_LOCATION="s3://'$$MINIO_BUCKET/iceberg'";
+        export STORAGE_LOCATION="s3://$$MINIO_BUCKET/iceberg";
         /polaris/create-catalog.sh $$POLARIS_REALM $$CATALOG_NAME $$TOKEN;
         echo Extra grants...;
         curl -H "Authorization: Bearer $$TOKEN" -H 'Content-Type: application/json' \
@@ -296,8 +296,11 @@ services:
     entrypoint: >
       /bin/sh -c "
       until (mc alias set ${MINIO_ALIAS} ${MINIO_ENDPOINT} ${MINIO_ROOT_USER} ${MINIO_ROOT_PASSWORD}) do echo '...waiting...' && sleep 1; done;
-      mc mb ${MINIO_ALIAS}/${MINIO_BUCKET} --ignore-existing;
+      mc mb ${MINIO_ALIAS}/${MINIO_BUCKET}/iceberg; --ignore-existing;
       mc ls ${MINIO_ALIAS};
+
+      mc anonymous set public ${MINIO_ALIAS}/${MINIO_BUCKET};
+
       echo "MinIO bucket '${MINIO_BUCKET}' created successfully";
       tail -f /dev/null
       "

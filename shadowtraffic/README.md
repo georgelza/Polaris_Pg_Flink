@@ -20,6 +20,9 @@ Execute `run_pg.sh`, this will run the [ShadowTraffic](https://docs.shadowtraffi
 
     Take note of the `"throttleMs": 1000` as part of each generator blocks `localconfigs` section, just to slow things down a bit during development
 
-- License key in `conf/license.env`, 
-  - see above project home page to obtain a trial license.
-  - There is also a trial key available at the project GIT Repo
+There is also a trial key available at the project [GIT Repo](https://github.com/ShadowTraffic/shadowtraffic-examples) 
+    
+  - free-trial-license.env
+  - free-trial-license-docker.env  
+
+Place License key in `conf/license.env`, 

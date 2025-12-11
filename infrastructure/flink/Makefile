@@ -18,7 +18,9 @@ help:
 .PHONY: help
 
 build: 
+	@echo "🔨 Building Apache Flink Docker images..."
 	docker build --build-arg REPO_NAME=${REPO_NAME} -t ${REPO_NAME}/${IMAGE_NAME}:${VERSION} --file Dockerfile . --no-cache
+	@echo "✅ Apache Flink Docker image built successfully"
 
 pull_base:
 	# docker pull arm64v8/flink:1.20.2-scala_2.12-java17

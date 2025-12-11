@@ -33,11 +33,13 @@ CREATE OR REPLACE TABLE c_cdcsource.demog.accountholders (
 
 CREATE OR REPLACE TABLE c_cdcsource.demog.transactions (
      _id                    BIGINT              NOT NULL
+    ,eventid                VARCHAR(36)         NOT NULL
     ,transactionid          VARCHAR(36)         NOT NULL
     ,eventtime              VARCHAR(30)
-    ,payernationalId        VARCHAR(16)
+    ,direction              VARCHAR(8)
+    ,payernationalid        VARCHAR(16)
     ,payeraccount           STRING
-    ,payeenationalId        VARCHAR(16)
+    ,payeenationalid        VARCHAR(16)
     ,payeeaccount           STRING
     ,amount                 STRING
     ,created_at             TIMESTAMP_LTZ(3)

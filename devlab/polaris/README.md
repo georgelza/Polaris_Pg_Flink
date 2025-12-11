@@ -118,10 +118,13 @@ docker exec -it postgrescat psql -U dbadmin -d findept
 ```bash
 curl http://localhost:8182/q/health
 
+# The important bit for the below one is the http Status 200 at the end of the response
 curl -w "\nHTTP Status: %{http_code}\n" http://localhost:8182/healthcheck
 
+# metrics that can be scraped using Prometheus server
 curl -f http://localhost:8182/q/metrics
 
+# want to see healthy
 docker inspect polaris --format='{{.State.Health.Status}}'
 ```
 
@@ -163,11 +166,14 @@ echo "Token: ${TOKEN}"
 
 ### 6. Create our Polaris Catalogs (Optional via REST API)
 
-The below was execute/completed via our bootstrap service defined in our `docker-compose.yaml` file.
+The below was executed/completed via our bootstrap service defined in our `docker-compose.yaml` file.
+The command is shared for example purposes only.
 
 Take note of our helper scripts located in `<Project Root>/conf/polaris`.
 
 ```bash
+# 1. Create 'icebergcat' catalog
+#
 # The below catalog is deployed as part of our `polaris-setup` docker-compose service
 #
 # Create (iceberg based) catalog via REST API (optional - Flink will create via REST)
@@ -188,6 +194,11 @@ curl -X POST http://localhost:8181/api/management/v1/catalogs \
       "allowedLocations": ["s3://warehouse/iceberg"]
     }
 }' | jq
+
+# 2. List Catalogs
+# List configured catalogs
+curl -X GET http://localhost:8181/api/management/v1/catalogs \
+  -H "Authorization: Bearer ${TOKEN}" | jq
 ```
 
 
@@ -212,7 +223,7 @@ curl -X GET http://localhost:8181/api/catalog/v1/icebergcat/namespaces \
 
 ```sql
 -- 1. Create c_iceberg catalog (Polaris REST)
-CREATE CATALOG c_iceberg WITH (
+CREATE CATALOG c_icebergx WITH (
    'type'='iceberg'
   ,'catalog-type'='rest'
   ,'uri'='http://polaris:8181/api/catalog'
@@ -295,10 +306,12 @@ PostgreSQL Server: `postgrescat`
                 │                   │
                 │                   │
            ┌────▼───────────────────▼───────┐
-           │           -> c_iceberg         │
+           │        -> c_iceberg            │
            │                                │
            │     warehouse/iceberg/finflow  │
+           │                                │
            │     warehouse/iceberg/fraud    │
+           │                                │
            └────────────────────────────────┘
 
 ```

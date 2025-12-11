@@ -33,8 +33,7 @@ help:
 #	docker rmi $(docker images -q --filter "dangling=true")
 
 build:
-#	@cd ../infrastructure && make pull && make build
-	@cd ../infrastructure && make build
+	@cd ../infrastructure && make pull_all && make build
 .PHONY: build
 
 
@@ -57,7 +56,7 @@ run:
 		polaris polaris-bootstrap polaris-setup \
 		--remove-orphans
 	@echo "✅ Flink & Polaris Catalog LAB services started successfully"
-.PHONY: run_flink
+.PHONY: run
 
 stop:
 	docker compose stop

@@ -65,7 +65,7 @@ COPY stage/iceberg-flink-1.20-1.9.1.jar                 /opt/flink/lib/iceberg-f
 COPY stage/iceberg-flink-runtime-1.20-1.9.1.jar         /opt/flink/lib/iceberg-flink-runtime-1.20-1.9.1.jar
 COPY stage/iceberg-aws-bundle-1.9.1.jar                 /opt/flink/iceberg-aws-bundle-1.9.1.jar
 
-
+    
 RUN echo "--> Set Ownerships of /opt/flink" && \
     chown -R flink:flink $FLINK_HOME 
 

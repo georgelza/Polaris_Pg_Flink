@@ -16,13 +16,6 @@ help:
 .PHONY: help
 
 
-build: pull_all
-	@echo "🔨 Building all Docker images..."
-	@cd flink && make pull && make build
-	@echo "✅ All images built successfully"
-.PHONY: build
-
-
 pull_all: flink polaris datastores
 	@echo "✅ All source images pulled successfully"
 .PHONY: pull
@@ -32,10 +25,12 @@ flink:
 	docker pull arm64v8/flink:1.20.2-scala_2.12-java17
 	#docker pull flink/flink:1.20.2-scala_2.12-java17
 
+
 polaris:
 	docker pull apache/polaris:latest
 	docker pull alpine/curl:latest
 	docker pull apache/polaris-admin-tool:latest
+
 
 datastores:
 	docker pull postgres:12
@@ -45,3 +40,9 @@ datastores:
 # Using above image as it still includes the full console functionality 
 # or if you want to use the latest current image available.
 #	docker pull minio/minio:latest
+
+build:
+	@echo "🔨 Building all Docker images..."
+	@cd flink && make pull && make build
+	@echo "✅ All images built successfully"
+.PHONY: build

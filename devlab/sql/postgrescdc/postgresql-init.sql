@@ -20,11 +20,13 @@ CREATE TABLE public.accountholders (
 
 CREATE TABLE public.transactions (
      _id                      SERIAL          NOT NULL
+    ,eventid                  VARCHAR(36)     NOT NULL
     ,transactionid            VARCHAR(36)     NOT NULL
     ,eventtime                VARCHAR(30)
-    ,payernationalId          VARCHAR(16)
+    ,direction                VARCHAR(8)
+    ,payernationalid          VARCHAR(16)
     ,payeraccount             JSONB
-    ,payeenationalId          VARCHAR(16)
+    ,payeenationalid          VARCHAR(16)
     ,payeeaccount             JSONB
     ,amount                   JSONB
     ,created_at               TIMESTAMPTZ      DEFAULT NOW() NOT NULL
@@ -32,6 +34,7 @@ CREATE TABLE public.transactions (
 ) TABLESPACE pg_default;
 
 CREATE INDEX accountholders_nationalid_idx ON public.accountholders(nationalid);
+CREATE INDEX transactions_eventid_idx ON public.transactions(eventid);
 CREATE INDEX transactions_txnid_idx ON public.transactions(transactionid);
 
 ALTER TABLE public.accountholders REPLICA IDENTITY FULL;

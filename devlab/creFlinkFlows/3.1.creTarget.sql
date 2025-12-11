@@ -1,5 +1,5 @@
 
-SET 'execution.checkpointing.interval'   = '15s';
+SET 'execution.checkpointing.interval'   = '60s';
 
 SET 'table.exec.sink.upsert-materialize' = 'NONE';
 
@@ -16,7 +16,7 @@ CREATE OR REPLACE TABLE c_iceberg.finflow.accountholders WITH (
     ,'snapshot.num-retained.max'         = '20'
     ,'table.exec.sink.upsert-materialize'= 'NONE'
 ) AS 
-SELECT * FROM postgres_catalog.demog.accountholders;
+SELECT * FROM c_cdcsource.demog.accountholders;
 
 ################################################################################################################################################
 
@@ -31,7 +31,7 @@ CREATE OR REPLACE TABLE c_iceberg.finflow.transactions WITH (
     ,'snapshot.num-retained.max'         = '20'
     ,'table.exec.sink.upsert-materialize'= 'NONE'
 ) AS 
-SELECT * FROM postgres_catalog.demog.transactions;
+SELECT * FROM c_cdcsource.demog.transactions;
 
 
 ################################################################################################################################################

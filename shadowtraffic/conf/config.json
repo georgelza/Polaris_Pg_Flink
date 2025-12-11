@@ -282,6 +282,14 @@
 
             },
             "row": {
+                // Outbound Event
+
+                // This is unique per event, we also define it as the primary key
+                "eventId": {
+                    "_gen": "uuid", 
+                    "version": 7,
+                    "pgHint": "VARCHAR(36) PRIMARY KEY"
+                },
 
                 "transactionId": {
                     "_gen": "uuid",
@@ -296,6 +304,8 @@
                     }
                 },
 
+                "direction": "outbound",
+
                 "payernationalId":      {"_gen": "var", "var": "payerNationalId"},
                 "payeraccount":         {"_gen": "var", "var": "payerAccount"},
 
@@ -303,6 +313,80 @@
                 "payeeaccount":         {"_gen": "var", "var": "payeeAccount"},
 
                 "amount":               {"_gen": "var", "var": "amount"}
+
+            },
+            "localConfigs": {
+                "maxEvents": 1,
+                "throttleMs": 1000
+            }
+        },
+        {
+            "name": "_g_txn_inbound",
+            "table": "transactions",
+            "vars": {
+                "OUTBOUND": {
+                    "_gen": "lookup",
+                    "table": "transactions",
+                    "path": ["row"],
+                    "strategy": "last"
+                }
+
+            },
+            "row": {
+                // Inbound Event
+
+                // This is unique per event, we also define it as the primary key
+                "eventId":   {
+                    "_gen": "uuid", 
+                    "version": 7,
+                    "pgHint": "VARCHAR(36) PRIMARY KEY"
+                },
+
+                // This is shared across the outbound and inbound events.
+                "transactionId": {
+                    "_gen": "var",
+                    "var": "OUTBOUND",
+                    "path": ["transactionId"],
+                    "pgHint": "VARCHAR(36)"
+                },
+                
+                "eventTime":    {
+                    "_gen": "now",
+                    "serialize": {
+                        "type": "postgresTimestamp"
+                    }
+                },
+                
+                "direction": "inbound",
+
+                "payernationalId": {
+                    "_gen": "var",
+                    "var": "OUTBOUND",
+                    "path": ["payernationalId"],
+                    "pgHint": "VARCHAR(16)"
+                },                
+                "payeraccount": {
+                    "_gen": "var",
+                    "var": "OUTBOUND",
+                    "path": ["payeraccount"]
+                },   
+                "payeenationalId": {
+                    "_gen": "var",
+                    "var": "OUTBOUND",
+                    "path": ["payeenationalId"],
+                    "pgHint": "VARCHAR(16)"
+                },  
+                "payeeaccount": {
+                    "_gen": "var",
+                    "var": "OUTBOUND",
+                    "path": ["payeeaccount"]
+                },   
+
+                "amount": {
+                    "_gen": "var",
+                    "var": "OUTBOUND",
+                    "path": ["amount"]
+                }
 
             },
             "localConfigs": {
@@ -323,6 +407,11 @@
                 "generators": [
                     "_g_txn_outbound"
                 ]               
+            },
+            {
+                "generators": [
+                    "_g_txn_inbound"
+                ]                                   
             }
         ]
     },
