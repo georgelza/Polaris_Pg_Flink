@@ -1,4 +1,4 @@
-## Apache Polaris (incubating) / Postgres for Persistence and Apache Flink 
+## Apache Polaris (incubating) / Postgres for Persistence and Apache Flink for Processing
 
 The following is a little explore of [Apache Polaris (incubating)](https://polaris.apache.org) as a Catalog store for Lakehouse environments,  primarily an Apache Iceberg catalog store.
 
@@ -70,32 +70,35 @@ BLOG: []()
 GIT REPO: [Polaris_Pg_Flink](https://github.com/georgelza/Polaris_pg_flink)
 
 
-## The stack:
+## About our Stack:
 
 ### Overview
 
 The stack goes through 3 phases, if we can call it that:
 
-- Build the minimum environment to get our Polaris catalog up, with the PostgreSQL backend datastore and MinIO configured/integrated.
+- Build the minimum environment to get our [Apache Polaris (incubating)](https://polaris.apache.org) catalog up, with the PostgreSQL backend datastore and MinIO configured/integrated.
 
-- Add to this minimul stack our Apache Flink cluster, enabling us to define our catalog, create a Flink database and create tables inside our database homed inside our catalog.
+- Add to this minimul stack our [Apache Flink 1.20.1](https://flink.apache.org) cluster, enabling us to define our catalog, create a Flink database and create tables inside our database homed inside our catalog.
 
-- Run our data generation utilizing ShadowTraffic, providing us with a data stream into a PostgreSQL datastore, which we will CDC source and move around.
+- Run our data generation utilizing [Shadowtraffic](https://docs.shadowtraffic.io), providing us with a data stream into a PostgreSQL datastore, which we will CDC source and move around.
 
 
 ## Building and Running the environment
 
-You're reading this file, under this directory is our devlab, infrastructure and shadowtraffic sub directories.
+You're reading this file, under this directory is our `devlab`, `infrastructure` and `shadowtraffic` sub directories.
 
-- devlab contains all our code to run the projects.
-- infrastructure is where our Dockerfile's are used to build the environment, in addition to Makefiles that can be used to pull and wget all the source docker containers and additional modules.
-- shadowtraffic contains our data generator/config file.
+- `devlab` contains all our code to run the projects.
+
+- `infrastructure` is where our Dockerfile's are used to build the environment, in addition to Makefiles that can be used to pull and wget all the source docker containers and additional modules.
+
+- `shadowtraffic` contains our data generator/config file.
   
-You will also found a configuration file used by our Docker-compose projects: `devlab/.env`.
+You will also found a configuration file used to provide various environment variables as used by our Docker-compose projects in `devlab/.env`.
 
 Our environment can be build and brough online using `devlab/Makefile`:
 
 The first time you start the project, we need to pull and build the required containers, this can be done by:
+
 
 ### 1. via devlab ...
 
@@ -105,32 +108,37 @@ The first time you start the project, we need to pull and build the required con
 
 or
 
+
 ### 2. via infrastructure ...
 
 -  `cd infrastructure`
--  `make pull_all`
+-  `make pull_base`
+-  `make pull`
 -  `make build`
 
-At this point we can startup the minimum environment or the full stack.
+At this point we can startup the minimum environment to make sure our Polaris/Postgres and MinIO is working, or the full stack which adds the Apache Flink cluster.
+
 
 ## Run the Stack
 
-### 1. Minimal Environment (Polaris, Postgres and MinIO), which will use `<Project Root>/devlab/docker-compose-basic.yml`
+1. Minimal Environment (Polaris, Postgres and MinIO), which will use `<Project Root>/devlab/docker-compose-basic.yml`
 
-- `make run_base`
+   - `make run_base`
 
-- ... look around
+   - ... look around
 
-- `make down`
+   - `make down`
   
-### 2. Full Environment (Polaris, Flink, Postgres and MinIO), which will use `<Project Root>/devlab/docker-compose-flink.yml`
 
-- `make run`
+2. Full Environment (Polaris, Flink, Postgres and MinIO), which will use `<Project Root>/devlab/docker-compose-flink.yml`
 
-- ... run shadowtraffic, 
-- Execute Flink SQL to move the data from the CDC source tables into our apache Iceberg tables configured with persistent storage on our MinIO object storage service, aka S3 service.
+   - `make run`
 
-- `make down`
+   - ... run shadowtraffic, 
+   - Execute Flink SQL to move the data from the CDC source tables into our apache Iceberg tables configured with persistent storage on our MinIO object storage service, aka S3 service.
+
+   - `make down`
+
 
 ### Notess
 
@@ -142,6 +150,7 @@ For our datastore used for Shadowtraffic, I've placed SQL in the above script to
 
 - `transactions`
   
+
 ### Management interfaces
 
 - Polaris: http://localhost:8181 (Client API)
@@ -151,17 +160,23 @@ For our datastore used for Shadowtraffic, I've placed SQL in the above script to
 - MinIO UI: http://localhost:9001 (Console, mnadmin/mnpassword)
   
 
-### Software/package versions
+## Software/package versions
 
 The following stack is deployed using one of the provided  `<Project Root>/devlab/docker-compose-*.yaml` files as per above.
 
 - [Apache Polaris 1.2.0 (incubating)](https://polaris.apache.org)
 
-- [Apache Flink 1.20.2](https://nightlies.apache.org/flink/flink-docs-release-1.20/)                   
+- [Apache Flink 1.20.1](https://flink.apache.org)                   
 
+    - There is a option to use apache Flink 1.20.2, see `infrastructure/README.md`
+  
 - [Apache Flink CDC 3.5](https://nightlies.apache.org/flink/flink-cdc-docs-release-3.5/)
 
 - [Apache Iceberg 1.9.1](https://iceberg.apache.org)
+
+    - There is a option to use apache Iceberg 1.9.2, see `infrastructure/README.md`
+
+- [Apache Paimon 1.3.1](https://paimon.apache.orc)
 
 - [PostgreSQL 12](https://www.postgresql.org)
 
@@ -170,14 +185,9 @@ The following stack is deployed using one of the provided  `<Project Root>/devla
 - [Shadowtraffic](https://docs.shadowtraffic.io)
 
 
-### By: George Leonard
+## By: George Leonard
 - georgelza@gmail.com
 - https://www.linkedin.com/in/george-leonard-945b502/
 - https://medium.com/@georgelza
-
-
-
-### More Reading
-
 
 

@@ -22,7 +22,7 @@ services:
   # Lots of Jar's added to the base image, Fluss, JDBC, PostgreSQL, Paimon, S3
   ################################################################################
   jobmanager:
-    image: georgelza/apacheflink-base-1.20.2-scala_2.12-java17:1.0.2
+    image: georgelza/apacheflink-base-1.20.1-scala_2.12-java17:1.0.0
     hostname: jobmanager
     container_name: jobmanager
     ports:
@@ -47,7 +47,7 @@ services:
     command: jobmanager
 
   taskmanager:
-    image: georgelza/apacheflink-base-1.20.2-scala_2.12-java17:1.0.2
+    image: georgelza/apacheflink-base-1.20.1-scala_2.12-java17:1.0.0
     depends_on:
       - jobmanager
     deploy:
@@ -163,8 +163,11 @@ services:
       - CLIENT_SECRET=${ROOT_CLIENT_SECRET}
       - CATALOG_NAME=${CATALOG_NAME}
       - POLARIS_REALM=${POLARIS_REALM}
-      - MINIO_BUCKET=${MINIO_BUCKET}
       - MINIO_ENDPOINT=${MINIO_ENDPOINT}
+      - MINIO_BUCKET=${MINIO_BUCKET}
+      - MINIO_ROOT_USER=${MINIO_ROOT_USER}
+      - MINIO_ROOT_PASSWORD=${MINIO_ROOT_PASSWORD}
+      - AWS_REGION=${AWS_REGION}
     volumes:
       - ./conf/polaris/:/polaris
     entrypoint: "/bin/sh"
@@ -174,20 +177,39 @@ services:
         chmod +x /polaris/create-catalog.sh;
         chmod +x /polaris/obtain-token.sh;
         source /polaris/obtain-token.sh $$POLARIS_REALM;
-        echo Creating catalog: $$CATALOG_NAME in realm: $$POLARIS_REALM;
-        export STORAGE_CONFIG_INFO='{"storageType":"S3",
+        
+        export PROPERTIES='{
+          "default-base-location": "s3://'$$MINIO_BUCKET'/iceberg",
+          "s3.access-key-id": "'$$MINIO_ROOT_USER'",
+          "s3.secret-access-key": "'$$MINIO_ROOT_PASSWORD'",
+          "s3.region": "'$$AWS_REGION'",
+          "s3.path-style-access": true
+        }';
+
+        export STORAGE_CONFIG_INFO='{
+          "storageType": "S3",
           "endpoint":"http://localhost:9000",
           "endpointInternal":"'$$MINIO_ENDPOINT'",
-          "pathStyleAccess":true}';
-        export STORAGE_LOCATION="s3://$$MINIO_BUCKET/iceberg";
-        /polaris/create-catalog.sh $$POLARIS_REALM $$CATALOG_NAME $$TOKEN;
-        echo Extra grants...;
-        curl -H "Authorization: Bearer $$TOKEN" -H 'Content-Type: application/json' \
-          -X PUT \
-          http://polaris:8181/api/management/v1/catalogs/${CATALOG_NAME}/catalog-roles/catalog_admin/grants \
-          -d '{"type":"catalog", "privilege":"CATALOG_MANAGE_CONTENT"}';
-        echo Polaris Setup Complete.;
+          "region":"'$$AWS_REGION'",
+          "pathStyleAccess":true,
+          "allowedLocations": ["s3://'$$MINIO_BUCKET'/iceberg/*"]
+        }';
 
+        export STORAGE_LOCATION="s3://$$MINIO_BUCKET/iceberg";
+
+        source /polaris/create-catalog.sh $$POLARIS_REALM $$CATALOG_NAME $${TOKEN} $PROPERTIES;
+        
+        echo '';
+        echo Extra grants...;
+        curl  -X PUT http://polaris:8181/api/management/v1/catalogs/${CATALOG_NAME}/catalog-roles/catalog_admin/grants \
+          -H "Authorization: Bearer $$TOKEN" -H 'Content-Type: application/json' \
+          -d '{
+            "type": "catalog", 
+            "privilege": "CATALOG_MANAGE_CONTENT"
+          }';
+        
+        echo ;
+        echo Polaris Setup Complete.;
 
   ################################################################################
   # Will act as a destination store for our JDBC based Flink catalog
@@ -297,6 +319,7 @@ services:
       /bin/sh -c "
       until (mc alias set ${MINIO_ALIAS} ${MINIO_ENDPOINT} ${MINIO_ROOT_USER} ${MINIO_ROOT_PASSWORD}) do echo '...waiting...' && sleep 1; done;
       mc mb ${MINIO_ALIAS}/${MINIO_BUCKET}/iceberg; --ignore-existing;
+      mc mb ${MINIO_ALIAS}/${MINIO_BUCKET}/paimon; --ignore-existing;
       mc ls ${MINIO_ALIAS};
 
       mc anonymous set public ${MINIO_ALIAS}/${MINIO_BUCKET};

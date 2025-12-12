@@ -1,5 +1,6 @@
 
 # CDC Sources
+
 CREATE OR REPLACE TABLE c_cdcsource.demog.accountholders (
      _id                BIGINT                  NOT NULL
     ,nationalid         VARCHAR(16)             NOT NULL

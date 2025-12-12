@@ -9,10 +9,10 @@ This is provided via the `postgrecat` service that spins up a PostgreSQL server 
 See the `.env` and the below specific variables.
 
 ```bash
+
 # PostgreSQL Catalog Store
-#
-COMPOSE_PROJECT_NAME        = polaris
-REPO_NAME                   = georgelza
+COMPOSE_PROJECT_NAME=polaris
+REPO_NAME=sgeorgelza
 
 # PostgreSQL CDC Source
 POSTGRES_CDC_HOST=postgrescdc
@@ -34,6 +34,7 @@ POSTGRES_CAT_USER=dbadmin
 POSTGRES_CAT_PASSWORD=dbpassword
 POSTGRES_CAT_DB=flink_catalog
 
+
 # Polaris Catalog
 ROOT_CLIENT_ID=root
 ROOT_CLIENT_SECRET=s3cr3t
@@ -46,7 +47,6 @@ MINIO_ROOT_PASSWORD=mnpassword
 MINIO_ALIAS=minio
 MINIO_ENDPOINT=http://minio:9000
 MINIO_BUCKET=warehouse
-
 AWS_ACCESS_KEY_ID=mnadmin
 AWS_SECRET_ACCESS_KEY=mnpassword
 AWS_REGION=za-south-1
@@ -70,6 +70,7 @@ For more "insight" or is that exploring this rabbit hole.
 ### 1. Start the Services
 
 ```bash
+
 # Start all services
 make run_basic
 
@@ -95,6 +96,7 @@ make logsf |grep minio
 ### 2. Verify PostgreSQL Setup
 
 ```bash
+
 # Connect to PostgreSQL  => Polaris Data
 docker exec -it postgrescat psql -U dbadmin -d findept
 
@@ -116,6 +118,7 @@ docker exec -it postgrescat psql -U dbadmin -d findept
 ### 3. Check Polaris health
 
 ```bash
+
 curl http://localhost:8182/q/health
 
 # The important bit for the below one is the http Status 200 at the end of the response
@@ -126,6 +129,7 @@ curl -f http://localhost:8182/q/metrics
 
 # want to see healthy
 docker inspect polaris --format='{{.State.Health.Status}}'
+
 ```
 
 
@@ -133,6 +137,7 @@ docker inspect polaris --format='{{.State.Health.Status}}'
 
 ```bash
 # Extract credentials from .env
+
 ROOT_CLIENT_ID=$(grep ROOT_CLIENT_ID .env | cut -d '=' -f2)
 ROOT_CLIENT_SECRET=$(grep ROOT_CLIENT_SECRET .env | cut -d '=' -f2)
 
@@ -148,6 +153,7 @@ echo "Client Secret: ${ROOT_CLIENT_SECRET}"
 ### 5. Get OAuth Token from Polaris
 
 ```bash
+
 # Get access token
 #
 # Retrieve access token - This needs to be done before any other commands are executed as the TOKEN forms part of the API call variables.
@@ -160,43 +166,50 @@ export TOKEN=$(curl -s -X POST http://localhost:8181/api/catalog/v1/oauth/tokens
     -d 'scope=PRINCIPAL_ROLE:ALL' \
     | jq -r '.access_token')
 
-echo "Token: ${TOKEN}"
 ```
 
 
 ### 6. Create our Polaris Catalogs (Optional via REST API)
 
-The below was executed/completed via our bootstrap service defined in our `docker-compose.yaml` file.
-The command is shared for example purposes only.
-
-Take note of our helper scripts located in `<Project Root>/conf/polaris`.
-
 ```bash
-# 1. Create 'icebergcat' catalog
-#
+
+# The below was executed/completed via our bootstrap service defined in our `docker-compose.yaml` file.
+# The command is shared for example purposes only.
+
+# Take note of our helper scripts located in `<Project Root>/conf/polaris`.
+
 # The below catalog is deployed as part of our `polaris-setup` docker-compose service
 #
 # Create (iceberg based) catalog via REST API (optional - Flink will create via REST)
 # We specify a "specified" folder location under our MinIO warehouse root
 
-curl -X POST http://localhost:8181/api/management/v1/catalogs \
-  -H "Authorization: Bearer ${TOKEN}" \
+# 1. Create the "icebergcat" catalog pointing to MinIO
+curl -i -X POST http://localhost:8181/api/management/v1/catalogs \
+  -H "Authorization: Bearer $TOKEN" \
   -H "Content-Type: application/json" \
-  -d '{
-    "name": "icerbergcat",
+  -H "Accept: application/json" \
+  -H "Polaris-Realm: findept" \
+  --json '{
+    "name": "icebergcat",
     "type": "INTERNAL",
     "properties": {
-      "default-base-location": "s3://warehouse/iceberg"
+      "default-base-location": "s3://warehouse/iceberg",
+      "s3.endpoint": "http://minio:9000",
+      "s3.access-key-id": "mnadmin",
+      "s3.secret-access-key": "mnpassword",
+      "s3.region": "af-south-1",
+      "s3.path-style-access": true
     },
     "storageConfigInfo": {
       "storageType": "S3",
-      "pathStyleAccess": true,
-      "allowedLocations": ["s3://warehouse/iceberg"]
+      "allowedLocations": [
+        "s3://warehouse/iceberg/*"
+      ]
     }
-}' | jq
+}' -v | jq
 
-# 2. List Catalogs
-# List configured catalogs
+
+# 2. List all catalogs to verify creation
 curl -X GET http://localhost:8181/api/management/v1/catalogs \
   -H "Authorization: Bearer ${TOKEN}" | jq
 ```
@@ -204,47 +217,176 @@ curl -X GET http://localhost:8181/api/management/v1/catalogs \
 
 ### 7. Create Catalog Namespace 
 
-When creating a database using flink-sql inside a catalog that will also create a namespace in the "warehouse" property.
-
 ```bash
-# 1. Create 'fraud' Namespace inside icebergcat catalog
+
+# 1. List namespaces in the catalog
+curl -X GET http://localhost:8181/api/catalog/v1/icebergcat/namespaces \
+  -H "Authorization: Bearer ${TOKEN}" | jq
+
+
+# 2. Create 'finflow' Namespace inside icebergcat catalog
 curl -X POST http://localhost:8181/api/catalog/v1/icebergcat/namespaces \
     -H "Authorization: Bearer ${TOKEN}" \
     -H 'Content-Type: application/json' \
-    -d '{"namespace": ["fraud"], "properties": {"description": "Iceberg catalog database"}}' | jq
-
-curl -X GET http://localhost:8181/api/catalog/v1/icebergcat/namespaces \
-  -H "Authorization: Bearer $TOKEN" | jq
-
+    -d '{"namespace": ["finflow"], "properties": {"description": "Icebergcat catalog, database: finflow"}}' | jq
 ```
 
 
-### 8. Flink SQL Catalog Setup
+### 8. Setting Up Role-Based Access Control (RBAC)
+
+If you want to set up role-based access control:
+
+```bash
+
+# Step 1. Create a principal role
+curl -X POST http://localhost:8181/management/v1/principal-roles \
+  -H "Authorization: Bearer {$TOKEN}" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "principalRole": {
+      "name": "DataEngineer"
+    }
+}' | jq
+
+
+# Step 2. Create a catalog role
+curl -X POST http://localhost:8181/management/v1/catalogs/icebergcat/catalog-roles \
+  -H "Authorization: Bearer ${TOKEN}" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "catalogRole": {
+      "name": "TableManager"
+    }
+}' | jq
+
+
+# Step 3. Create a catalog admin role
+curl -X PUT http://localhost:8181/api/management/v1/catalogs/icebergcat/catalog-roles/catalog_admin/grants \
+  -H "Authorization: Bearer ${TOKEN}" \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "grant":{
+      "type":"catalog", 
+      "privilege": "CATALOG_MANAGE_CONTENT"
+    }
+}' | jq
+
+
+# 4. Create a data engineer role
+# Create a data engineer role
+curl -X POST http://localhost:8181/api/management/v1/principal-roles \
+  -H "Authorization: Bearer ${TOKEN}" \
+  -H 'Content-Type: application/json' \
+  -d '{
+      "principalRole": {
+        "name": "DataEngineer"
+    }
+}' | jq
+
+
+# 5. Connect the roles
+curl -X PUT http://localhost:8181/api/management/v1/principal-roles/DataEngineer/catalog-roles/icebergcat \
+  -H "Authorization: Bearer ${TOKEN}" \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "catalogRole":{
+      "name": "TableManager"
+    }
+}' | jq
+
+
+# 6. Give root the data engineer role
+curl -X PUT http://localhost:8181/api/management/v1/principals/root/principal-roles \
+  -H "Authorization: Bearer v \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "principalRole": {
+      "name": "DataEngineer"
+    }
+}' | jq
+
+
+# 7. Get principal roles 
+curl -X GET http://localhost:8181/api/management/v1/principals/root/principal-roles \
+  -H "Authorization: Bearer $TOKEN" | jq
+
+
+# 8. Grant table privileges to the catalog role (TableManager)
+curl -X PUT http://localhost:8181/api/management/v1/catalogs/icebergcat/catalog-roles/TableManager/grants \
+  -H "Authorization: Bearer ${TOKEN}" \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "grants": [
+      {
+        "type": "catalog",
+        "privilege": "TABLE_CREATE"
+      },
+      {
+        "type": "catalog", 
+        "privilege": "TABLE_READ_DATA"
+      },
+      {
+        "type": "catalog",
+        "privilege": "TABLE_WRITE_DATA"
+      }
+    ]
+}' | jq
+
+# or
+
+curl -X PUT http://localhost:8181/api/management/v1/catalogs/icebergcatx/catalog-roles/TableManager/grants \
+  -H "Authorization: Bearer ${TOKEN}" \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "grants": [
+      {
+        "type": "catalog",
+        "privilege": "CATALOG_MANAGE_CONTENT"
+      }
+    ]
+  }' 
+```
+
+### 9. List tables in the test namespace
+
+```bash
+
+curl -X GET http://localhost:8181/api/catalog/v1/icebergcat/namespaces/finflow/tables \
+  -H "Authorization: Bearer ${TOKEN}" | jq
+
+```
+
+## Create Flink Catalog using Flink-sql, referencing our Polaris API created catalog: 'icebergcat'
+
+### 1. Create c_iceberg catalog (Polaris REST)
 
 ```sql
--- 1. Create c_iceberg catalog (Polaris REST)
-CREATE CATALOG c_icebergx WITH (
-   'type'='iceberg'
-  ,'catalog-type'='rest'
-  ,'uri'='http://polaris:8181/api/catalog'
-  ,'warehouse'='icerbergcat'
-  ,'oauth2-server-uri'='http://polaris:8181/api/catalog/v1/oauth/tokens'
-  ,'credential'='root:s3cr3t'
-  ,'scope'='PRINCIPAL_ROLE:ALL'
-  ,'s3.endpoint'='http://minio:900'
-  ,'s3.access-key-id'='mnadmin'
-  ,'s3.secret-access-key'='mnpassword'
-  ,'s3.path-style-access'='true'
+
+-- 1. Catalog
+CREATE CATALOG c_iceberg WITH (
+   'type'                 = 'iceberg'
+  ,'catalog-type'         = 'rest'
+  ,'uri'                  = 'http://polaris:8181/api/catalog'
+  ,'warehouse'            = 'icebergcat'
+  ,'oauth2-server-uri'    = 'http://polaris:8181/api/catalog/v1/oauth/tokens'
+  ,'credential'           = 'root:s3cr3t'
+  ,'scope'                = 'PRINCIPAL_ROLE:ALL'
+  ,'s3.endpoint'          = 'http://minio:900'
+  ,'s3.access-key-id'     = 'mnadmin'
+  ,'s3.secret-access-key' = 'mnpassword'
+  ,'s3.path-style-access' = 'true'
 );
 
 USE CATALOG c_iceberg;
 CREATE DATABASE IF NOT EXISTS finflow;
+
 
 -- 2. Create CDC source tables in default_catalog
 -- Note: These are NOT a catalog, just table definitions with postgres-cdc connector
 USE CATALOG default_catalog;
 CREATE DATABASE IF NOT EXISTS demog;
 USE demog;
+
 
 -- 3. Create CDC tables
 -- See full script for details, <Project Toor>/devlab/creFlinkFlows/2.1.creCdc.sql
@@ -258,7 +400,7 @@ PostgreSQL Server: `postgrescat`
 **Note**: also shown is the presence of the Flink based JDBC catalog database: `flink_catalog` hosted on the same PostgreSQL server.
 
 
-### 1. DB: findept
+### 1. DB: findept REALM
 
 | Schema | Purpose | Used By |
 |--------|---------|---------|
@@ -316,7 +458,7 @@ PostgreSQL Server: `postgrescat`
 
 ```
 
-### 4. MinIO Storage Structure
+### 3. MinIO Storage Structure
 
 ```
 warehouse/
@@ -326,13 +468,3 @@ warehouse/
     └── fraud/        # fraud database/namespace
 
 ```
-
-**Key Points:**
-
-- c_iceberg uses Apache Polaris REST catalog interface
-  
-- Apache Polaris stores metadata in `polaris_schema` schema
-
-- CDC tables are just connector definitions, not a catalog
-
-- CDC tables reference external PostgreSQL database directly

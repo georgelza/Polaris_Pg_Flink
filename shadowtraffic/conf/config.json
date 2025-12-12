@@ -192,7 +192,7 @@
                         6
                     ]
                 },
-                "throttleMs": 500
+                "throttleMs": 250
             }
         },
 
@@ -317,7 +317,7 @@
             },
             "localConfigs": {
                 "maxEvents": 1,
-                "throttleMs": 1000
+                "throttleMs": 500
             }
         },
         {
@@ -391,7 +391,7 @@
             },
             "localConfigs": {
                 "maxEvents": 1,
-                "throttleMs": 1000
+                "throttleMs": 500
             }
         }
     ],

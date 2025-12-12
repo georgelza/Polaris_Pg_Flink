@@ -23,33 +23,40 @@ apk add --no-cache jq
 
 realm=${1:-"POLARIS"}
 
-catalog=${2:-"polariscat"}
+catalog=${2:-"icebergcat"}
 
-TOKEN=${3:-""}
+token=${3:-""}
+
+properties=${4:-""}
 
 BASEDIR=$(dirname $0)
 
 echo
 echo "Realm:                 ${realm}"
 echo "Catalog:               ${catalog}"
+echo "Properties:            ${PROPERTIES}"
 
-if [ -z "$TOKEN" ]; then
+if [ -z "$token" ]; then
   source $BASEDIR/obtain-token.sh ${realm}
 fi
 
 echo
-echo "Obtained access token: ${TOKEN}"
+echo "Obtained access token: ${token}"
 
 STORAGE_TYPE="FILE"
 if [ -z "${STORAGE_LOCATION}" ]; then
     echo "STORAGE_LOCATION is not set, using FILE storage type"
-    STORAGE_LOCATION="file:///var/tmp/polariscat/"
+    STORAGE_LOCATION="file:///var/tmp/icebergcat/"
+
 else
     echo "STORAGE_LOCATION is set to '$STORAGE_LOCATION'"
+
     if [[ "$STORAGE_LOCATION" == s3* ]]; then
         STORAGE_TYPE="S3"
+
     elif [[ "$STORAGE_LOCATION" == gs* ]]; then
         STORAGE_TYPE="GCS"
+    
     else
         STORAGE_TYPE="AZURE"
     fi
@@ -61,6 +68,8 @@ if [ -z "${STORAGE_CONFIG_INFO}" ]; then
 
     if [[ "$STORAGE_TYPE" == "S3" ]]; then
         STORAGE_CONFIG_INFO=$(echo "$STORAGE_CONFIG_INFO" | jq --arg roleArn "$AWS_ROLE_ARN" '. + {roleArn: $roleArn}')
+
+    
     elif [[ "$STORAGE_TYPE" == "AZURE" ]]; then
         STORAGE_CONFIG_INFO=$(echo "$STORAGE_CONFIG_INFO" | jq --arg tenantId "$AZURE_TENANT_ID" '. + {tenantId: $tenantId}')
     fi
@@ -69,25 +78,37 @@ fi
 echo
 echo Creating a catalog named $catalog in realm $realm...
 
+# PAYLOAD='{
+#    "catalog": {
+#      "name": "'$catalog'",
+#      "type": "INTERNAL",
+#      "readOnly": false,
+#      "properties": {
+#        "default-base-location": "'$STORAGE_LOCATION'"
+#      },
+#      "storageConfigInfo": '$STORAGE_CONFIG_INFO'
+#    }
+#  }'
+
+
 PAYLOAD='{
    "catalog": {
      "name": "'$catalog'",
      "type": "INTERNAL",
      "readOnly": false,
-     "properties": {
-       "default-base-location": "'$STORAGE_LOCATION'"
-     },
+     "properties": '$PROPERTIES',
      "storageConfigInfo": '$STORAGE_CONFIG_INFO'
    }
  }'
 
-echo $PAYLOAD
+echo
+echo Payload:               ${PAYLOAD}
 
-curl -s -H "Authorization: Bearer ${TOKEN}" \
-   -H 'Accept: application/json' \
+curl -X POST http://polaris:8181/api/management/v1/catalogs \
+   -H "Authorization: Bearer ${token}" \
    -H 'Content-Type: application/json' \
+   -H 'Accept: application/json' \
    -H "Polaris-Realm: $realm" \
-   http://polaris:8181/api/management/v1/catalogs \
    -d "$PAYLOAD" -v
 
 echo
