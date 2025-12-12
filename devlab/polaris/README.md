@@ -236,7 +236,62 @@ curl -X POST http://localhost:8181/api/catalog/v1/icebergcat/namespaces \
 
 If you want to set up role-based access control:
 
+[Build a Data Lakehouse with Apache Iceberg, Polaris, Trino & MinIO](https://medium.com/@gilles.philippart/build-a-data-lakehouse-with-apache-iceberg-polaris-trino-minio-349c534ecd98) by [Gilles Philippart](https://medium.com/@gilles.philippart)
+
 ```bash
+
+# 1. Create a catalog admin role
+curl -X PUT http://localhost:8181/api/management/v1/catalogs/icebergcat/catalog-roles/catalog_admin/grants \
+  -H "Authorization: Bearer {$TOKEN}" \
+  --json '{"grant":{"type":"catalog", "privilege":"CATALOG_MANAGE_CONTENT"}}'
+
+# 2. Create a data engineer role
+curl -X POST http://localhost:8181/api/management/v1/principal-roles \
+  -H "Authorization: Bearer {$TOKEN}" \
+  --json '{"principalRole":{"name":"DataEngineer"}}'
+
+# 3. Connect the roles
+curl -X PUT http://localhost:8181/api/management/v1/principal-roles/DataEngineer/catalog-roles/icebergcat \
+  -H "Authorization: Bearer {$TOKEN}" \
+  --json '{"catalogRole":{"name":"catalog_admin"}}'
+
+# 4.Give root the data engineer role
+curl -X PUT http://localhost:8181/api/management/v1/principals/root/principal-roles \
+  -H "Authorization: Bearer {$TOKEN}" \
+  --json '{"principalRole": {"name":"DataEngineer"}}'
+
+# 5. Inspect
+curl -X GET http://localhost:8181/api/management/v1/principals/root/principal-roles \
+  -H "Authorization: Bearer {$TOKEN}" | jq
+```
+
+```json
+{
+  "roles": [
+    {
+      "name": "service_admin",
+      "federated": false,
+      "properties": {},
+      "createTimestamp": 1751733238263,
+      "lastUpdateTimestamp": 1751733238263,
+      "entityVersion": 1
+    },
+    {
+      "name": "DataEngineer",
+      "federated": false,
+      "properties": {},
+      "createTimestamp": 1751733315678,
+      "lastUpdateTimestamp": 1751733315678,
+      "entityVersion": 1
+    }
+  ]
+}
+```
+
+```bash
+# OR
+
+# NOT VERIFIED
 
 # Step 1. Create a principal role
 curl -X POST http://localhost:8181/management/v1/principal-roles \
@@ -347,7 +402,7 @@ curl -X PUT http://localhost:8181/api/management/v1/catalogs/icebergcatx/catalog
   }' 
 ```
 
-### 9. List tables in the test namespace
+### 9. List tables in the finflow namespace from icebergcat catalog
 
 ```bash
 
@@ -356,9 +411,10 @@ curl -X GET http://localhost:8181/api/catalog/v1/icebergcat/namespaces/finflow/t
 
 ```
 
+
 ## Create Flink Catalog using Flink-sql, referencing our Polaris API created catalog: 'icebergcat'
 
-### 1. Create c_iceberg catalog (Polaris REST)
+### 1. Create c_iceberg catalog using Polaris REST interface
 
 ```sql
 

@@ -183,15 +183,16 @@ services:
           "s3.access-key-id": "'$$MINIO_ROOT_USER'",
           "s3.secret-access-key": "'$$MINIO_ROOT_PASSWORD'",
           "s3.region": "'$$AWS_REGION'",
-          "s3.path-style-access": true
+          "s3.path-style-access": true,
+          "s3.endpoint": "'$$MINIO_ENDPOINT'"
         }';
 
         export STORAGE_CONFIG_INFO='{
           "storageType": "S3",
-          "endpoint":"http://localhost:9000",
-          "endpointInternal":"'$$MINIO_ENDPOINT'",
-          "region":"'$$AWS_REGION'",
-          "pathStyleAccess":true,
+          "endpoint": "http://localhost:9000",
+          "endpointInternal": "'$$MINIO_ENDPOINT'",
+          "region": "'$$AWS_REGION'",
+          "pathStyleAccess": true,
           "allowedLocations": ["s3://'$$MINIO_BUCKET'/iceberg/*"]
         }';
 
@@ -209,7 +210,9 @@ services:
           }';
         
         echo ;
-        echo Polaris Setup Complete.;
+        echo Polaris Catalog Setup Complete;
+        echo Configure RBAC configuration now;
+        echo See polaris/README.md;
 
   ################################################################################
   # Will act as a destination store for our JDBC based Flink catalog
