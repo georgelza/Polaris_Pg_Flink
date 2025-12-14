@@ -59,13 +59,12 @@ run_base:
 # .PHONY: run
 
 run:
-	@echo "🚀 Starting All services (Flink, Polaris, PostgreSQL & MinIO)..."
+	@echo "🚀 Starting All services (Flink, PostgreSQL & MinIO)..."
 	docker compose -f docker-compose-flink.yml -p polaris up -d \
 		jobmanager taskmanager \
  		postgrescat postgrescdc \
 		minio minio-client \
 		--remove-orphans
-	@echo "✅ Flink & Polaris Catalog LAB services started successfully"
 .PHONY: run
 
 stop:
