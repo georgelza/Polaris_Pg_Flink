@@ -35,6 +35,7 @@ services:
       - ./data/flink/logs:/opt/flink/log
       - ./data/flink/checkpoints:/opt/flink/checkpoints
       - ./data/flink/rocksdb:/opt/flink/rocksdb
+      - ./data/flink/tmp:/tmp
     configs:
       - source: flink-conf
         target: /opt/flink/conf/config.yaml
@@ -59,6 +60,7 @@ services:
       - ./data/flink/logs:/opt/flink/log
       - ./data/flink/checkpoints:/opt/flink/checkpoints
       - ./data/flink/rocksdb:/opt/flink/rocksdb
+      - ./data/flink/tmp:/tmp
     configs:
       - source: flink-conf
         target: /opt/flink/conf/config.yaml
@@ -117,6 +119,7 @@ services:
       AWS_ACCESS_KEY_ID: ${MINIO_ROOT_USER}
       AWS_SECRET_ACCESS_KEY: ${MINIO_ROOT_PASSWORD}
       POLARIS_BOOTSTRAP_CREDENTIALS: ${POLARIS_REALM},${ROOT_CLIENT_ID},${ROOT_CLIENT_SECRET}
+      polaris.features.DROP_WITH_PURGE_ENABLED: true  
       polaris.realm-context.realms: ${POLARIS_REALM}
       quarkus.otel.sdk.disabled: "true"
 
@@ -161,6 +164,7 @@ services:
     environment:
       - CLIENT_ID=${ROOT_CLIENT_ID}
       - CLIENT_SECRET=${ROOT_CLIENT_SECRET}
+      - POLARISHOST=${POLARISHOST}
       - CATALOG_NAME=${CATALOG_NAME}
       - POLARIS_REALM=${POLARIS_REALM}
       - MINIO_ENDPOINT=${MINIO_ENDPOINT}
@@ -176,10 +180,11 @@ services:
       - >-
         chmod +x /polaris/create-catalog.sh;
         chmod +x /polaris/obtain-token.sh;
+
         source /polaris/obtain-token.sh $$POLARIS_REALM;
         
         export PROPERTIES='{
-          "default-base-location": "s3://'$$MINIO_BUCKET'/iceberg",
+          "default-base-location": "s3a://'$$MINIO_BUCKET'/iceberg",
           "s3.access-key-id": "'$$MINIO_ROOT_USER'",
           "s3.secret-access-key": "'$$MINIO_ROOT_PASSWORD'",
           "s3.region": "'$$AWS_REGION'",
@@ -193,26 +198,16 @@ services:
           "endpointInternal": "'$$MINIO_ENDPOINT'",
           "region": "'$$AWS_REGION'",
           "pathStyleAccess": true,
-          "allowedLocations": ["s3://'$$MINIO_BUCKET'/iceberg/*"]
+          "allowedLocations": ["s3a://'$$MINIO_BUCKET'/iceberg/*"]
         }';
 
-        export STORAGE_LOCATION="s3://$$MINIO_BUCKET/iceberg";
+        export STORAGE_LOCATION="s3a://$$MINIO_BUCKET/iceberg";
 
-        source /polaris/create-catalog.sh $$POLARIS_REALM $$CATALOG_NAME $${TOKEN} $PROPERTIES;
-        
-        echo '';
-        echo Extra grants...;
-        curl  -X PUT http://polaris:8181/api/management/v1/catalogs/${CATALOG_NAME}/catalog-roles/catalog_admin/grants \
-          -H "Authorization: Bearer $$TOKEN" -H 'Content-Type: application/json' \
-          -d '{
-            "type": "catalog", 
-            "privilege": "CATALOG_MANAGE_CONTENT"
-          }';
-        
-        echo ;
-        echo Polaris Catalog Setup Complete;
-        echo Configure RBAC configuration now;
-        echo See polaris/README.md;
+        source /polaris/create-catalog.sh $$POLARISHOST $$POLARIS_REALM $$CATALOG_NAME;
+
+  #        "default-base-location": "s3a://'$$MINIO_BUCKET'/iceberg",
+  #        "allowedLocations": ["s3a://'$$MINIO_BUCKET'/iceberg/*"]
+  #        export STORAGE_LOCATION="s3a://$$MINIO_BUCKET/iceberg";
 
   ################################################################################
   # Will act as a destination store for our JDBC based Flink catalog
@@ -321,13 +316,24 @@ services:
     entrypoint: >
       /bin/sh -c "
       until (mc alias set ${MINIO_ALIAS} ${MINIO_ENDPOINT} ${MINIO_ROOT_USER} ${MINIO_ROOT_PASSWORD}) do echo '...waiting...' && sleep 1; done;
-      mc mb ${MINIO_ALIAS}/${MINIO_BUCKET}/iceberg; --ignore-existing;
-      mc mb ${MINIO_ALIAS}/${MINIO_BUCKET}/paimon; --ignore-existing;
+
+      mc rm -r --force ${MINIO_ALIAS}/${MINIO_BUCKET};  
+
+      mc mb ${MINIO_ALIAS}/${MINIO_BUCKET}/iceberg --ignore-existing;
+      mc mb ${MINIO_ALIAS}/${MINIO_BUCKET}/iceberg_jdbc --ignore-existing;
+      mc mb ${MINIO_ALIAS}/${MINIO_BUCKET}/paimon_jdbc --ignore-existing;
+
+      mc policy set public ${MINIO_ALIAS}/${MINIO_BUCKET}/iceberg;
+      mc policy set public ${MINIO_ALIAS}/${MINIO_BUCKET}/iceberg_jdbc;
+      mc policy set public ${MINIO_ALIAS}/${MINIO_BUCKET}/paimon_jdbc;
+
+      mc anonymous set public ${MINIO_ALIAS}/${MINIO_BUCKET}/iceberg;
+      mc anonymous set public ${MINIO_ALIAS}/${MINIO_BUCKET}/iceberg_jdbc;
+      mc anonymous set public ${MINIO_ALIAS}/${MINIO_BUCKET}/paimon_jdbc;
+
       mc ls ${MINIO_ALIAS};
 
-      mc anonymous set public ${MINIO_ALIAS}/${MINIO_BUCKET};
-
-      echo "MinIO bucket '${MINIO_BUCKET}' created successfully";
+      echo "MinIO bucket '${MINIO_ALIAS}/${MINIO_BUCKET}' created successfully";
       tail -f /dev/null
       "
 

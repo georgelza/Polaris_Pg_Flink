@@ -211,7 +211,11 @@ curl -i -X POST http://localhost:8181/api/management/v1/catalogs \
 
 # 2. List all catalogs to verify creation
 curl -X GET http://localhost:8181/api/management/v1/catalogs \
-  -H "Authorization: Bearer ${TOKEN}" | jq
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -H "Accept: application/json" \
+  -H "Polaris-Realm: findept" \
+    | jq
 ```
 
 
@@ -221,14 +225,25 @@ curl -X GET http://localhost:8181/api/management/v1/catalogs \
 
 # 1. List namespaces in the catalog
 curl -X GET http://localhost:8181/api/catalog/v1/icebergcat/namespaces \
-  -H "Authorization: Bearer ${TOKEN}" | jq
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -H "Accept: application/json" \
+  -H "Polaris-Realm: findept" \
+    | jq
 
 
-# 2. Create 'finflow' Namespace inside icebergcat catalog
+# 2. Create 'fraud' Namespace inside icebergcat catalog
 curl -X POST http://localhost:8181/api/catalog/v1/icebergcat/namespaces \
-    -H "Authorization: Bearer ${TOKEN}" \
-    -H 'Content-Type: application/json' \
-    -d '{"namespace": ["finflow"], "properties": {"description": "Icebergcat catalog, database: finflow"}}' | jq
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -H "Accept: application/json" \
+  -H "Polaris-Realm: findept" \
+    -d '{
+      "namespace": ["fraud"], 
+      "properties": {
+        "description": "Icebergcat catalog, database: fraud"
+      }
+}' | jq
 ```
 
 
@@ -242,27 +257,63 @@ If you want to set up role-based access control:
 
 # 1. Create a catalog admin role
 curl -X PUT http://localhost:8181/api/management/v1/catalogs/icebergcat/catalog-roles/catalog_admin/grants \
-  -H "Authorization: Bearer {$TOKEN}" \
-  --json '{"grant":{"type":"catalog", "privilege":"CATALOG_MANAGE_CONTENT"}}'
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -H "Accept: application/json" \
+  -H "Polaris-Realm: findept" \
+  --json '{
+    "grant":{
+      "type":"catalog", 
+      "privilege":"CATALOG_MANAGE_CONTENT"
+    }
+}' | jq
 
 # 2. Create a data engineer role
 curl -X POST http://localhost:8181/api/management/v1/principal-roles \
-  -H "Authorization: Bearer {$TOKEN}" \
-  --json '{"principalRole":{"name":"DataEngineer"}}'
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -H "Accept: application/json" \
+  -H "Polaris-Realm: findept" \
+  --json '{
+    "principalRole":{
+      "name":"DataEngineer"
+    }
+}' | jq
+
 
 # 3. Connect the roles
 curl -X PUT http://localhost:8181/api/management/v1/principal-roles/DataEngineer/catalog-roles/icebergcat \
-  -H "Authorization: Bearer {$TOKEN}" \
-  --json '{"catalogRole":{"name":"catalog_admin"}}'
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -H "Accept: application/json" \
+  -H "Polaris-Realm: findept" \
+  --json '{
+    "catalogRole":{
+      "name":"catalog_admin"
+    }
+}' | jq
+
 
 # 4.Give root the data engineer role
 curl -X PUT http://localhost:8181/api/management/v1/principals/root/principal-roles \
-  -H "Authorization: Bearer {$TOKEN}" \
-  --json '{"principalRole": {"name":"DataEngineer"}}'
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -H "Accept: application/json" \
+  -H "Polaris-Realm: findept" \
+  --json '{
+      "principalRole": {
+        "name":"DataEngineer"
+      }
+}' | jq
+
 
 # 5. Inspect
 curl -X GET http://localhost:8181/api/management/v1/principals/root/principal-roles \
-  -H "Authorization: Bearer {$TOKEN}" | jq
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -H "Accept: application/json" \
+  -H "Polaris-Realm: findept" \
+  | jq
 ```
 
 ```json
@@ -288,10 +339,11 @@ curl -X GET http://localhost:8181/api/management/v1/principals/root/principal-ro
 }
 ```
 
+
 ```bash
 # OR
 
-# NOT VERIFIED
+# NOT VERIFIED AS WORKING
 
 # Step 1. Create a principal role
 curl -X POST http://localhost:8181/management/v1/principal-roles \
@@ -386,6 +438,36 @@ curl -X PUT http://localhost:8181/api/management/v1/catalogs/icebergcat/catalog-
       }
     ]
 }' | jq
+
+# Catalog Roles
+# 
+#   Table specific
+#     TABLE_CREATE
+#     TABLE_DROP
+#     TABLE_LIST
+#     TABLE_READ_PROPERTIES
+#     TABLE_WRITE_PROPERTIES
+#     TABLE_READ_DATA
+#     TABLE_WRITE_DATA
+#     TABLE_FULL_METADATA
+#
+#   View Privileges
+#     ...
+#
+#   Namespace Privileges
+#     ...
+# 
+#   Catalog wide
+#     CATALOG_MANAGE_METADATA
+#     TABLE_FULL_METADATA
+#     NAMESPACE_FULL_METADATA
+#     VIEW_FULL_METADATA
+#     TABLE_WRITE_DATA
+#     TABLE_READ_DATA
+#     CATALOG_READ_PROPERTIES
+#     CATALOG_WRITE_PROPERTIES
+#
+# See https://polaris.apache.org/in-dev/unreleased/managing-security/access-control/
 
 # or
 

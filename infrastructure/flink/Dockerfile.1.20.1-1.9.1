@@ -47,6 +47,9 @@ RUN echo "--> Setup Directory Structure" && \
 RUN echo "--> Install JARs: Flink's S3 plugin" && \
     mkdir -p ./plugins/s3-fs-hadoop && \
     mv ./opt/flink-s3-fs-hadoop-1.20.1.jar ./plugins/s3-fs-hadoop/
+  
+# Good Reference to read
+# https://medium.com/@gilles.philippart/build-a-streaming-data-lakehouse-with-apache-flink-kafka-iceberg-and-polaris-473c47e04525
 
 RUN echo "--> Install JARs: => Generic"
 COPY stage/bundle-2.31.9.jar                            /opt/flink/lib/bundle-2.31.9.jar  
@@ -56,12 +59,17 @@ COPY stage/postgresql-42.7.6.jar                        /opt/flink/lib/postgresq
 # CDC Support https://nightlies.apache.org/flink/flink-cdc-docs-release-3.4/docs/connectors/flink-sources/overview/#supported-flink-versions
 COPY stage/flink-sql-connector-postgres-cdc-3.5.0.jar   /opt/flink/lib/flink-sql-connector-postgres-cdc-3.5.0.jar
 
+COPY stage/hadoop-aws-3.4.1.jar                         /opt/flink/lib/hadoop-aws-3.4.1.jar
+COPY stage/aws-java-sdk-bundle-1.12.789.jar             /opt/flink/lib/aws-java-sdk-bundle-1.12.789.jar
+
+
 # Flink version specific
 RUN echo "--> Install JARs: => Flink 1.20.1"
 COPY stage/flink-sql-json-1.20.1.jar                    /opt/flink/lib/flink-sql-json-1.20.1.jar     
 COPY stage/flink-sql-parquet-1.20.1.jar                 /opt/flink/lib/flink-sql-parquet-1.20.1.jar
 COPY stage/flink-json-1.20.1.jar                        /opt/flink/lib/flink-json-1.20.1.jar
 COPY stage/flink-connector-jdbc-3.3.0-1.20.jar          /opt/flink/lib/flink-connector-jdbc-3.3.0-1.20.jar
+#COPY stage/flink-s3-fs-hadoop-1.20.1.jar                /opt/flink/lib/flink-s3-fs-hadoop-1.20.1.jar
 
 RUN echo "--> Install JARs: => Iceberg 1.9.1"
 COPY stage/iceberg-flink-1.20-1.9.1.jar                 /opt/flink/lib/iceberg-flink-1.20-1.9.1.jar
