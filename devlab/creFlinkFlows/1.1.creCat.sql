@@ -43,18 +43,11 @@ SHOW DATABASES;
 CREATE CATALOG c_iceberg_jdbc WITH (
    'type'                      = 'iceberg'
   ,'catalog-impl'              = 'org.apache.iceberg.jdbc.JdbcCatalog'
-
-  -- PostgreSQL connection details => JDBC Catalog
   ,'uri'                       = 'jdbc:postgresql://postgrescat:5432/flink_catalog?currentSchema=iceberg_jdbc'
   ,'jdbc.user'                 = 'dbadmin'
   ,'jdbc.password'             = 'dbpassword'
-  
-  -- Optional: JDBC driver (auto-detected if not specified)
   ,'jdbc.driver'               = 'org.postgresql.Driver'
-  
-  -- Data warehouse location (can be S3, HDFS, or local)
-  ,'warehouse'                 = 's3://warehouse/iceberg_jdbc'
-  
+  ,'warehouse'                 = 's3a://warehouse/iceberg_jdbc'
   ,'table-default.file.format' = 'parquet'
 );
 

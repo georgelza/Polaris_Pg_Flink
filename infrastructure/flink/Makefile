@@ -10,9 +10,9 @@ HIVE_HOME=$FLINK_HOME/conf/
 FLINK_VERSION_SHORT=1.20
 FLINK_VERSION_FULL=1.20.1
 ICEBERG_VERSION=1.9.1
-HADOOP_VERSION=2.8.3
+#HADOOP_VERSION=2.8.3
 #HADOOP_VERSION=3.3.4
-#HADOOP_VERSION=3.4.1
+HADOOP_VERSION=3.4.1
 POSTGRESQL_CONNECTOR=42.7.6
 FLINK_CDC=3.5.0
 PAIMON_VERSION=1.3.1
@@ -45,7 +45,7 @@ pull: pull_base paimon iceberg
     cd stage; wget https://repo1.maven.org/maven2/org/apache/flink/flink-shaded-hadoop-2-uber/${HADOOP_VERSION}-10.0/flink-shaded-hadoop-2-uber-${HADOOP_VERSION}-10.0.jar \
 	cd stage; wget https://repo.maven.apache.org/maven2/org/apache/flink/flink-json/${FLINK_VERSION_FULL}/flink-json-${FLINK_VERSION_FULL}.jar \
 	cd stage; wget https://repo.maven.apache.org/maven2/org/apache/flink/flink-sql-parquet/${FLINK_VERSION_FULL}/flink-sql-parquet-${FLINK_VERSION_FULL}.jar 
-
+	
 pull_base:
 	cd stage; wget https://repo1.maven.org/maven2/software/amazon/awssdk/bundle/2.31.9/bundle-2.31.9.jar \
 	cd stage; wget https://repo1.maven.org/maven2/org/postgresql/postgresql/${POSTGRESQL_CONNECTOR}/postgresql-${POSTGRESQL_CONNECTOR}.jar \

@@ -379,10 +379,17 @@ env:
 
 
 fs:
-  s3:
+  s3a:
     access.key: mnadmin
     secret.key: mnpassword
     endpoint: http://minio:9000
     path:
       style:
         access: true
+  connection:
+    ssl: 
+      enabled: false
+  impl: org.apache.hadoop.fs.s3a.S3AFileSystem
+  aws:
+    credentials:
+      provider: org.apache.hadoop.fs.s3a.SimpleAWSCredentialsProvider
