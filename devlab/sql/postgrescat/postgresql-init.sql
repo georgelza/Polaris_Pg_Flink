@@ -37,7 +37,7 @@ CREATE SCHEMA IF NOT EXISTS iceberg_jdbc AUTHORIZATION dbadmin;
 -- -- Grant permissions to the catalog user
 GRANT ALL PRIVILEGES ON SCHEMA iceberg_jdbc TO dbadmin;
 GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA iceberg_jdbc TO dbadmin;
-GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA paimiceberg_jdbcn_catalog TO dbadmin;
+GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA iceberg_jdbc TO dbadmin;
 
 -- Set default privileges for future objects
 ALTER DEFAULT PRIVILEGES IN SCHEMA iceberg_jdbc GRANT ALL ON TABLES TO dbadmin;

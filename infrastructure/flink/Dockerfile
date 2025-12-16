@@ -48,13 +48,6 @@ RUN echo "-> Install JARs: AWS" && \
 
 COPY stage/bundle-2.20.18.jar                                                       ${FLINK_HOME}/lib/aws/bundle-2.20.18.jar
 
-RUN echo "-> Install JARs: Hadoop/S3" && \
-    mkdir -p ./lib/hadoop 
-
-COPY stage/hadoop-common-${HADOOP_VERSION}.jar                                      ${FLINK_HOME}/lib/hadoop/hadoop-common-${HADOOP_VERSION}.jar
-COPY stage/flink-shaded-hadoop-2-uber-${HADOOP_VERSION}-10.0.jar                    ${FLINK_HOME}/lib/hadoop/flink-shaded-hadoop-2-uber-${HADOOP_VERSION}-10.0.jar
-
-
 RUN echo "-> Install JARs: Hadoop" && \
     mkdir -p ./lib/hadoop && pushd $_ && \
     curl https://repo1.maven.org/maven2/org/apache/commons/commons-configuration2/2.1.1/commons-configuration2-2.1.1.jar -O && \
@@ -67,6 +60,9 @@ RUN echo "-> Install JARs: Hadoop" && \
     curl https://repo1.maven.org/maven2/org/apache/hadoop/hadoop-hdfs-client/3.3.4/hadoop-hdfs-client-3.3.4.jar -O && \
     curl https://repo1.maven.org/maven2/org/apache/hadoop/hadoop-mapreduce-client-core/3.3.4/hadoop-mapreduce-client-core-3.3.4.jar -O  && \
     popd
+
+COPY stage/hadoop-common-${HADOOP_VERSION}.jar                                      ${FLINK_HOME}/lib/hadoop/hadoop-common-${HADOOP_VERSION}.jar
+COPY stage/flink-shaded-hadoop-2-uber-${HADOOP_VERSION}-10.0.jar                    ${FLINK_HOME}/lib/hadoop/flink-shaded-hadoop-2-uber-${HADOOP_VERSION}-10.0.jar
 
 
 RUN echo "--> Set Ownerships of /opt/flink" && \
