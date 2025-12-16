@@ -34,6 +34,13 @@ services:
       - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
       - AWS_REGION=${AWS_REGION}
       - AWS_DEFAULT_REGION=${AWS_REGION}
+
+      # *** ADD THESE HADOOP S3A VARIABLES AS BACKUP ***
+      - HADOOP_CONF_DIR=/opt/flink/conf  # Ensure core-site.xml is found
+      - fs.s3a.access.key=${MINIO_ROOT_USER}      # Use fs.s3a.access.key
+      - fs.s3a.secret.key=${MINIO_ROOT_PASSWORD}  # Use fs.s3a.secret.key
+      - fs.s3a.endpoint=${MINIO_ENDPOINT}         # Explicitly set the endpoint
+      - fs.s3a.path.style.access=true             # Explicitly set path style access
     volumes:
 
       - ./data/flink/logs:/opt/flink/log
@@ -63,6 +70,13 @@ services:
       - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
       - AWS_REGION=${AWS_REGION}
       - AWS_DEFAULT_REGION=${AWS_REGION}
+
+      # *** ADD THESE HADOOP S3A VARIABLES AS BACKUP ***
+      - HADOOP_CONF_DIR=/opt/flink/conf  # Ensure core-site.xml is found
+      - fs.s3a.access.key=${MINIO_ROOT_USER}      # Use fs.s3a.access.key
+      - fs.s3a.secret.key=${MINIO_ROOT_PASSWORD}  # Use fs.s3a.secret.key
+      - fs.s3a.endpoint=${MINIO_ENDPOINT}         # Explicitly set the endpoint
+      - fs.s3a.path.style.access=true             # Explicitly set path style access
     volumes:
       - ./data/flink/logs:/opt/flink/log
       - ./data/flink/checkpoints:/opt/flink/checkpoints

@@ -60,6 +60,7 @@ RUN echo "-> Install JARs: Hadoop" && \
 # COPY stage/paimon-s3-${PAIMON_VERSION}.jar                                ${FLINK_HOME}/lib/paimon/paimon-s3-${PAIMON_VERSION}.jar
 
 # ADD THIS NEW SECTION HERE
+### TRYING EVERYTHING TO GET IT WORKING...
 RUN echo "-> Create Hadoop Configuration" && \
     cat > ${FLINK_HOME}/conf/core-site.xml <<'EOF'
 <?xml version="1.0" encoding="UTF-8"?>
