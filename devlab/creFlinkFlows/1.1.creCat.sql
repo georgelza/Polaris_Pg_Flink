@@ -48,6 +48,10 @@ CREATE CATALOG c_iceberg_jdbc WITH (
   ,'jdbc.password'             = 'dbpassword'
   ,'jdbc.driver'               = 'org.postgresql.Driver'
   ,'warehouse'                 = 's3a://warehouse/iceberg_jdbc'
+  ,'s3a.endpoint'              = 'http://minio:900'
+  ,'s3a.access-key-id'         = 'mnadmin'
+  ,'s3a.secret-access-key'     = 'mnpassword'
+  ,'s3a.path-style-access'     =' true'
   ,'table-default.file.format' = 'parquet'
 );
 

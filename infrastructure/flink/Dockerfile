@@ -3,13 +3,15 @@ SHELL ["/bin/bash", "-c"]
 
 ENV FLINK_HOME=/opt/flink
 ENV HIVE_HOME=$FLINK_HOME/conf/
+
 ENV FLINK_VERSION_SHORT=1.20
 ENV FLINK_VERSION_FULL=1.20.1
 ENV ICEBERG_VERSION=1.9.1
-ENV HADOOP_VERSION=3.4.1
+ENV HADOOP_VERSION=3.3.4
 ENV POSTGRESQL_CONNECTOR=42.7.6
 ENV FLINK_CDC=3.5.0
 ENV PAIMON_VERSION=1.3.1
+
 WORKDIR $FLINK_HOME
 
 RUN echo "--> Setup Directory Structure" && \
@@ -56,6 +58,43 @@ RUN echo "-> Install JARs: Hadoop" && \
 
 # COPY stage/paimon-flink-${FLINK_VERSION_SHORT}-${PAIMON_VERSION}.jar      ${FLINK_HOME}/lib/paimon/paimon-flink-${FLINK_VERSION_SHORT}-${PAIMON_VERSION}.jar
 # COPY stage/paimon-s3-${PAIMON_VERSION}.jar                                ${FLINK_HOME}/lib/paimon/paimon-s3-${PAIMON_VERSION}.jar
+
+# ADD THIS NEW SECTION HERE
+RUN echo "-> Create Hadoop Configuration" && \
+    cat > ${FLINK_HOME}/conf/core-site.xml <<'EOF'
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+    <property>
+        <name>fs.s3a.endpoint</name>
+        <value>http://minio:9000</value>
+    </property>
+    <property>
+        <name>fs.s3a.access.key</name>
+        <value>mnadmin</value>
+    </property>
+    <property>
+        <name>fs.s3a.secret.key</name>
+        <value>mnpassword</value>
+    </property>
+    <property>
+        <name>fs.s3a.path.style.access</name>
+        <value>true</value>
+    </property>
+    <property>
+        <name>fs.s3a.connection.ssl.enabled</name>
+        <value>false</value>
+    </property>
+    <property>
+        <name>fs.s3a.impl</name>
+        <value>org.apache.hadoop.fs.s3a.S3AFileSystem</value>
+    </property>
+    <property>
+        <name>fs.s3a.aws.credentials.provider</name>
+        <value>org.apache.hadoop.fs.s3a.SimpleAWSCredentialsProvider</value>
+    </property>
+</configuration>
+EOF
+
 
 RUN echo "--> Set Ownerships of /opt/flink" && \
     chown -R flink:flink $FLINK_HOME 
