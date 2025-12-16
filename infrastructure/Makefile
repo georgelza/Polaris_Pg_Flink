@@ -1,12 +1,16 @@
 .DEFAULT_GOAL := help
 
+FLINK_VERSION_FULL=1.20.1
+PLATFORM=arm64v8
+#PLATFORM=flink
+
 define HELP
 
 Available commands:
 
 - pullall: Pull all source images.
 
-- buildall: Build all images.
+- build:   Build all images.
 
 endef
 
@@ -22,9 +26,7 @@ pull_all: flink polaris datastores
 
 
 flink:
-	docker pull arm64v8/flink:1.20.2-scala_2.12-java17
-	#docker pull flink/flink:1.20.2-scala_2.12-java17
-
+	docker pull arm64v8/flink:${FLINK_VERSION_FULL}-scala_2.12-java17
 
 polaris:
 	docker pull apache/polaris:latest
