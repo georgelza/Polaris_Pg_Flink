@@ -4,6 +4,16 @@ include ../.env
 IMAGE_NAME=apacheflink-base-1.20.1-scala_2.12-java17
 VERSION=1.0.0
 
+FLINK_HOME=/opt/flink
+HIVE_HOME=$FLINK_HOME/conf/
+FLINK_VERSION_SHORT=1.20
+FLINK_VERSION_FULL=1.20.1
+ICEBERG_VERSION=1.9.1
+HADOOP_VERSION=2.8.3
+POSTGRESQL_CONNECTOR=42.7.6
+FLINK_CDC=3.5.0
+PAIMON_VERSION=1.3.1
+JDBC_VERSION=3.3.0
 define HELP
 
 Available commands:
@@ -18,67 +28,32 @@ help:
 .PHONY: help
 
 build : 
-	@echo "🔨 Building Apache Flink 1.20.1 - Iceberg 1.9.1 Docker images..."
-	docker build --build-arg REPO_NAME=${REPO_NAME} -t ${REPO_NAME}/${IMAGE_NAME}:${VERSION} --file Dockerfile.1.20.1-1.9.1 . --no-cache
+	@echo "🔨 Building Apache Flink ${FLINK_VERSION_FULL} - Iceberg ${ICEBERG_VERSION} Docker images..."
+	docker build --build-arg REPO_NAME=${REPO_NAME} -t ${REPO_NAME}/${IMAGE_NAME}:${VERSION} --file Dockerfile . --no-cache
 	@echo "✅ Apache Flink Docker image built successfully"
-
-build1.20.2-1.9.1: 
-	@echo "🔨 Building Apache Flink 1.20.2 - Iceberg 1.9.1 Docker images..."
-	docker build --build-arg REPO_NAME=${REPO_NAME} -t ${REPO_NAME}/${IMAGE_NAME}:${VERSION} --file Dockerfile.1.20.2-1.9.1 . --no-cache
-	@echo "✅ Apache Flink Docker image built successfully"
-
-build1.20.2-1.9.2: 
-	@echo "🔨 Building Apache Flink 1.20.2 - Iceberg 1.9.2 Docker images..."
-	docker build --build-arg REPO_NAME=${REPO_NAME} -t ${REPO_NAME}/${IMAGE_NAME}:${VERSION} --file Dockerfile.1.20.2-1.9.2 . --no-cache
-	@echo "✅ Apache Flink Docker image built successfully"
-
-pull_base:
-	cd stage; wget https://repo1.maven.org/maven2/software/amazon/awssdk/bundle/2.31.9/bundle-2.31.9.jar \
-    cd stage; wget https://repo1.maven.org/maven2/org/apache/flink/flink-shaded-hadoop-2-uber/2.8.3-10.0/flink-shaded-hadoop-2-uber-2.8.3-10.0.jar \
-	cd stage; wget https://repo1.maven.org/maven2/org/postgresql/postgresql/42.7.6/postgresql-42.7.6.jar \
-	cd stage; wget https://repo1.maven.org/maven2/org/apache/flink/flink-sql-connector-postgres-cdc/3.5.0/flink-sql-connector-postgres-cdc-3.5.0.jar \
-	cd stage; wget https://repo1.maven.org/maven2/com/fasterxml/jackson/core/jackson-core/2.20.1/jackson-core-2.20.1.jar \
-	cd stage; wget https://repo1.maven.org/maven2/org/apache/flink/flink-s3-fs-hadoop/1.20.1/flink-s3-fs-hadoop-1.20.1.jar \
-    cd stage; wget https://repo1.maven.org/maven2/org/apache/hadoop/hadoop-aws/3.4.1/hadoop-aws-3.4.1.jar \
-    cd stage; wget https://repo1.maven.org/maven2/com/amazonaws/aws-java-sdk-bundle/1.12.789/aws-java-sdk-bundle-1.12.789.jar
-
-
-paimon:
-	cd stage; wget https://repo1.maven.org/maven2/org/apache/paimon/paimon-s3/1.3.1/paimon-s3-1.3.1.jar \
-	cd stage; wget https://repo1.maven.org/maven2/org/apache/paimon/paimon-flink-1.20/1.3.1/paimon-flink-1.20-1.3.1.jar
 
 # docker pull arm64v8/flink:1.20.1-scala_2.12-java17
 # docker pull flink/flink:1.20.1-scala_2.12-java17
-pull: pull_base paimon
-	cd stage; wget https://repo1.maven.org/maven2/org/apache/flink/flink-connector-jdbc/3.3.0-1.20/flink-connector-jdbc-3.3.0-1.20.jar \
-	cd stage; wget https://repo1.maven.org/maven2/org/apache/flink/flink-sql-json/1.20.1/flink-sql-json-1.20.1.jar \
-	cd stage; wget https://repo.maven.apache.org/maven2/org/apache/flink/flink-json/1.20.1/flink-json-1.20.1.jar \
-	cd stage; wget https://repo.maven.apache.org/maven2/org/apache/flink/flink-sql-parquet/1.20.1/flink-sql-parquet-1.20.1.jar \
-	cd stage; wget https://repo1.maven.org/maven2/org/apache/iceberg/iceberg-flink-runtime-1.20/1.9.1/iceberg-flink-runtime-1.20-1.9.1.jar \
-	cd stage; wget https://repo1.maven.org/maven2/org/apache/iceberg/iceberg-flink-1.20/1.9.1/iceberg-flink-1.20-1.9.1.jar \
-	cd stage; wget https://repo1.maven.org/maven2/org/apache/iceberg/iceberg-aws-bundle/1.9.1/iceberg-aws-bundle-1.9.1.jar
+pull: pull_base paimon iceberg
+	cd stage; wget https://repo1.maven.org/maven2/org/apache/flink/flink-connector-jdbc/${JDBC_VERSION}-${FLINK_VERSION_SHORT}/flink-connector-jdbc-${JDBC_VERSION}-${FLINK_VERSION_SHORT}.jar \
+	cd stage; wget https://repo1.maven.org/maven2/org/apache/flink/flink-sql-json/${FLINK_VERSION_FULL}/flink-sql-json-${FLINK_VERSION_FULL}.jar \
+	cd stage; wget https://repo1.maven.org/maven2/org/apache/flink/flink-sql-connector-postgres-cdc/${FLINK_CDC}/flink-sql-connector-postgres-cdc-${FLINK_CDC}.jar \
+    cd stage; wget https://repo1.maven.org/maven2/org/apache/flink/flink-shaded-hadoop-2-uber/${HADOOP_VERSION}-10.0/flink-shaded-hadoop-2-uber-${HADOOP_VERSION}-10.0.jar \
+	cd stage; wget https://repo.maven.apache.org/maven2/org/apache/flink/flink-json/${FLINK_VERSION_FULL}/flink-json-${FLINK_VERSION_FULL}.jar \
+	cd stage; wget https://repo.maven.apache.org/maven2/org/apache/flink/flink-sql-parquet/${FLINK_VERSION_FULL}/flink-sql-parquet-${FLINK_VERSION_FULL}.jar 
 
+pull_base:
+	cd stage; wget https://repo1.maven.org/maven2/software/amazon/awssdk/bundle/2.31.9/bundle-2.31.9.jar \
+	cd stage; wget https://repo1.maven.org/maven2/org/postgresql/postgresql/${POSTGRESQL_CONNECTOR}/postgresql-${POSTGRESQL_CONNECTOR}.jar \
+    cd stage; wget https://repo1.maven.org/maven2/org/apache/hadoop/hadoop-aws/3.4.1/hadoop-aws-3.4.1.jar \
+    cd stage; wget https://repo1.maven.org/maven2/com/amazonaws/aws-java-sdk-bundle/1.12.789/aws-java-sdk-bundle-1.12.789.jar \
+	cd stage; wget https://repo1.maven.org/maven2/com/fasterxml/jackson/core/jackson-core/2.20.1/jackson-core-2.20.1.jar 
 
-# docker pull arm64v8/flink:1.20.2-scala_2.12-java17
-# docker pull flink/flink:1.20.2-scala_2.12-java17
-pull_1.20.2-1.9.1:
-	cd stage; wget https://repo1.maven.org/maven2/org/apache/flink/flink-connector-jdbc/3.3.0-1.20/flink-connector-jdbc-3.3.0-1.20.jar \
-	cd stage; wget https://repo1.maven.org/maven2/org/apache/flink/flink-sql-json/1.20.2/flink-sql-json-1.20.2.jar \
-	cd stage; wget https://repo.maven.apache.org/maven2/org/apache/flink/flink-json/1.20.2/flink-json-1.20.2.jar \
-	cd stage; wget https://repo.maven.apache.org/maven2/org/apache/flink/flink-sql-parquet/1.20.2/flink-sql-parquet-1.20.2.jar \
-	cd stage; wget https://repo1.maven.org/maven2/org/apache/iceberg/iceberg-flink-runtime-1.20/1.9.1/iceberg-flink-runtime-1.20-1.9.1.jar \
-	cd stage; wget https://repo1.maven.org/maven2/org/apache/iceberg/iceberg-flink-1.20/1.9.1/iceberg-flink-1.20-1.9.1.jar \
-	cd stage; wget https://repo1.maven.org/maven2/org/apache/iceberg/iceberg-aws-bundle/1.9.1/iceberg-aws-bundle-1.9.1.jar
+paimon:
+	cd stage; wget https://repo1.maven.org/maven2/org/apache/paimon/paimon-s3/${PAIMON_VERSION}/paimon-s3-${PAIMON_VERSION}.jar \
+	cd stage; wget https://repo1.maven.org/maven2/org/apache/paimon/paimon-flink-${FLINK_VERSION_SHORT}/${PAIMON_VERSION}/paimon-flink-${FLINK_VERSION_SHORT}-${PAIMON_VERSION}.jar
 
-
-# docker pull arm64v8/flink:1.20.2-scala_2.12-java17
-# docker pull flink/flink:1.20.2-scala_2.12-java17
-pull_1.20.2-1.9.2: 
-	cd stage; wget https://repo1.maven.org/maven2/org/apache/flink/flink-connector-jdbc/3.3.0-1.20/flink-connector-jdbc-3.3.0-1.20.jar \
-	cd stage; wget https://repo1.maven.org/maven2/org/apache/flink/flink-sql-json/1.20.2/flink-sql-json-1.20.2.jar \
-	cd stage; wget https://repo.maven.apache.org/maven2/org/apache/flink/flink-json/1.20.2/flink-json-1.20.2.jar \
-	cd stage; wget https://repo.maven.apache.org/maven2/org/apache/flink/flink-sql-parquet/1.20.2/flink-sql-parquet-1.20.2.jar \
-	cd stage; wget https://repo1.maven.org/maven2/org/apache/iceberg/iceberg-flink-runtime-1.20/1.9.2/iceberg-flink-runtime-1.20-1.9.2.jar \
-	cd stage; wget https://repo1.maven.org/maven2/org/apache/iceberg/iceberg-flink-1.20/1.9.2/iceberg-flink-1.20-1.9.2.jar \
-	cd stage; wget https://repo1.maven.org/maven2/org/apache/iceberg/iceberg-aws-bundle/1.9.2/iceberg-aws-bundle-1.9.2.jar \
-	cd stage; wget https://repo1.maven.org/maven2/org/apache/paimon/paimon-flink-1.20/1.2.0/paimon-flink-1.20-1.3.0.jar
+iceberg:
+	cd stage; wget https://repo1.maven.org/maven2/org/apache/iceberg/iceberg-flink-runtime-${FLINK_VERSION_SHORT}/${ICEBERG_VERSION}/iceberg-flink-runtime-${FLINK_VERSION_SHORT}-${ICEBERG_VERSION}.jar \
+	cd stage; wget https://repo1.maven.org/maven2/org/apache/iceberg/iceberg-flink-${FLINK_VERSION_SHORT}/${ICEBERG_VERSION}/iceberg-flink-${FLINK_VERSION_SHORT}-${ICEBERG_VERSION}.jar \
+	cd stage; wget https://repo1.maven.org/maven2/org/apache/iceberg/iceberg-aws-bundle/${ICEBERG_VERSION}/iceberg-aws-bundle-${ICEBERG_VERSION}.jar

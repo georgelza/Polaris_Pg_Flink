@@ -1,4 +1,4 @@
-FROM arm64v8/flink:1.20.2-scala_2.12-java17
+FROM arm64v8/flink:1.20.1-scala_2.12-java17
 #FROM flink/flink:1.20.2-scala_2.12-java17
 SHELL ["/bin/bash", "-c"]
 
@@ -38,7 +38,6 @@ ENV FLINK_HOME=/opt/flink
 ENV HIVE_HOME=$FLINK_HOME/conf/
 WORKDIR $FLINK_HOME
 
-
 RUN echo "--> Setup Directory Structure" && \
     mkdir -p /opt/flink/conf/ && \
     mkdir -p /opt/flink/checkpoints && \
@@ -46,7 +45,10 @@ RUN echo "--> Setup Directory Structure" && \
 
 RUN echo "--> Install JARs: Flink's S3 plugin" && \
     mkdir -p ./plugins/s3-fs-hadoop && \
-    mv ./opt/flink-s3-fs-hadoop-1.20.2.jar ./plugins/s3-fs-hadoop/
+    mv ./opt/flink-s3-fs-hadoop-1.20.1.jar ./plugins/s3-fs-hadoop/
+
+# Good Reference to read
+# https://medium.com/@gilles.philippart/build-a-streaming-data-lakehouse-with-apache-flink-kafka-iceberg-and-polaris-473c47e04525
 
 RUN echo "--> Install JARs: => Generic"
 COPY stage/bundle-2.31.9.jar                            /opt/flink/lib/bundle-2.31.9.jar  
@@ -56,17 +58,20 @@ COPY stage/postgresql-42.7.6.jar                        /opt/flink/lib/postgresq
 # CDC Support https://nightlies.apache.org/flink/flink-cdc-docs-release-3.4/docs/connectors/flink-sources/overview/#supported-flink-versions
 COPY stage/flink-sql-connector-postgres-cdc-3.5.0.jar   /opt/flink/lib/flink-sql-connector-postgres-cdc-3.5.0.jar
 
+COPY stage/hadoop-aws-3.4.1.jar                         /opt/flink/lib/hadoop-aws-3.4.1.jar
+COPY stage/aws-java-sdk-bundle-1.12.789.jar             /opt/flink/lib/aws-java-sdk-bundle-1.12.789.jar
+
 # Flink version specific
-RUN echo "--> Install JARs: => Flink 1.20.2"
-COPY stage/flink-sql-json-1.20.2.jar                    /opt/flink/lib/flink-sql-json-1.20.2.jar     
-COPY stage/flink-sql-parquet-1.20.2.jar                 /opt/flink/lib/flink-sql-parquet-1.20.2.jar
-COPY stage/flink-json-1.20.2.jar                        /opt/flink/lib/flink-json-1.20.2.jar
+RUN echo "--> Install JARs: => Flink 1.20.1"
+COPY stage/flink-sql-json-1.20.1.jar                    /opt/flink/lib/flink-sql-json-1.20.1.jar     
+COPY stage/flink-sql-parquet-1.20.1.jar                 /opt/flink/lib/flink-sql-parquet-1.20.1.jar
+COPY stage/flink-json-1.20.1.jar                        /opt/flink/lib/flink-json-1.20.1.jar
 COPY stage/flink-connector-jdbc-3.3.0-1.20.jar          /opt/flink/lib/flink-connector-jdbc-3.3.0-1.20.jar
 
 RUN echo "--> Install JARs: => Iceberg 1.9.1"
 COPY stage/iceberg-flink-1.20-1.9.1.jar                 /opt/flink/lib/iceberg-flink-1.20-1.9.1.jar
 COPY stage/iceberg-flink-runtime-1.20-1.9.1.jar         /opt/flink/lib/iceberg-flink-runtime-1.20-1.9.1.jar
-COPY stage/iceberg-aws-bundle-1.9.1.jar                 /opt/flink/iceberg-aws-bundle-1.9.1.jar
+COPY stage/iceberg-aws-bundle-1.9.1.jar                 /opt/flink/lib/iceberg-aws-bundle-1.9.1.jar
 
 RUN echo "--> Install JARs: => Paimon 1.3.1"
 COPY stage/paimon-flink-1.20-1.3.1.jar                  /opt/flink/lib/paimon-flink-1.20-1.3.1.jar

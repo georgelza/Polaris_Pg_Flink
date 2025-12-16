@@ -1,27 +1,20 @@
 ## Building our Primary Flink Contaier
 
-We have the option of building 3 different version/combinations stacks
+We have various version options that can be build, see the flink/Dockerfile for the possible variables to set. Keep in mind they need to match the Apache Flink stack.
 
 ### 1. Build combinations
 
-- Apache Flink 1.20.1 + Apache Iceberg 1.9.1
+You will notice in the Dockerfile I don't like to hard code versions. Once we get the stack working using variables make it easy to just change what needs to be changed and everything else will fit/fall together.
 
-  - `make pull_base`
+- Apache Flink 1.20.1
+- Apache Iceberg 1.9.1
+- Apache Paimon 1.3.1
+- Apache Flink CDC 3.5.0
+- PostgreSQL Connetor 42.7.6
+- Hadoop S3 Libraries 2.8.3 
+
   - `make pull`
   - `make build`
-
-
-- Apache Flink 1.20.2 + Apache Iceberg 1.9.1
-
-  - `make pull_base`
-  - `make pull_1.20.2-1.9.1`
-  - `make build1.20.2-1.9.1`
-    
-- Apache Flink 1.20.2 + Apache Iceberg 1.9.2
-
-  - `make pull_base`
-  - `make pull_1.20.2-1.9.2`
-  - `make build1.20.2-1.9.2`
 
 
 ### 2. Container tag:
@@ -30,9 +23,10 @@ We have the option of building 3 different version/combinations stacks
 
   - IMAGE_NAME=apacheflink-base-1.20.1-scala_2.12-java17
 
-  or
+  or i.e.:
 
   - IMAGE_NAMEapacheflink-base-1.20.2-scala_2.12-java17
+
 
 - Then modify the `image:<name>` in the `devlab/docker-compose-flink.yaml `for the jobmanager and taskmanager service
 

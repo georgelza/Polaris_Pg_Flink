@@ -30,12 +30,15 @@ services:
     environment:
       - ENV_ROOTLOG_LEVEL=DEBUG
       - ENV_FLINKLOG_LEVEL=INFO
+      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+      - AWS_REGION=${AWS_REGION}
+      - AWS_DEFAULT_REGION=${AWS_REGION}
     volumes:
 
       - ./data/flink/logs:/opt/flink/log
       - ./data/flink/checkpoints:/opt/flink/checkpoints
       - ./data/flink/rocksdb:/opt/flink/rocksdb
-      - ./data/flink/tmp:/tmp
     configs:
       - source: flink-conf
         target: /opt/flink/conf/config.yaml
@@ -56,11 +59,14 @@ services:
     environment:
       - ENV_ROOTLOG_LEVEL=DEBUG
       - ENV_FLINKLOG_LEVEL=INFO
+      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+      - AWS_REGION=${AWS_REGION}
+      - AWS_DEFAULT_REGION=${AWS_REGION}
     volumes:
       - ./data/flink/logs:/opt/flink/log
       - ./data/flink/checkpoints:/opt/flink/checkpoints
       - ./data/flink/rocksdb:/opt/flink/rocksdb
-      - ./data/flink/tmp:/tmp
     configs:
       - source: flink-conf
         target: /opt/flink/conf/config.yaml
@@ -118,6 +124,7 @@ services:
       AWS_REGION: ${AWS_REGION}
       AWS_ACCESS_KEY_ID: ${MINIO_ROOT_USER}
       AWS_SECRET_ACCESS_KEY: ${MINIO_ROOT_PASSWORD}
+      AWS_ENDPOINT_URL_S3: http://minio:9000
       POLARIS_BOOTSTRAP_CREDENTIALS: ${POLARIS_REALM},${ROOT_CLIENT_ID},${ROOT_CLIENT_SECRET}
       polaris.features.DROP_WITH_PURGE_ENABLED: true  
       polaris.realm-context.realms: ${POLARIS_REALM}
@@ -184,12 +191,12 @@ services:
         source /polaris/obtain-token.sh $$POLARIS_REALM;
         
         export PROPERTIES='{
-          "default-base-location": "s3a://'$$MINIO_BUCKET'/iceberg",
+          "default-base-location": "s3://'$$MINIO_BUCKET'/iceberg",
+          "s3.endpoint": "'$$MINIO_ENDPOINT'",
+          "s3.path-style-access": true,
           "s3.access-key-id": "'$$MINIO_ROOT_USER'",
           "s3.secret-access-key": "'$$MINIO_ROOT_PASSWORD'",
-          "s3.region": "'$$AWS_REGION'",
-          "s3.path-style-access": true,
-          "s3.endpoint": "'$$MINIO_ENDPOINT'"
+          "s3.region": "'$$AWS_REGION'"
         }';
 
         export STORAGE_CONFIG_INFO='{
@@ -198,16 +205,13 @@ services:
           "endpointInternal": "'$$MINIO_ENDPOINT'",
           "region": "'$$AWS_REGION'",
           "pathStyleAccess": true,
-          "allowedLocations": ["s3a://'$$MINIO_BUCKET'/iceberg/*"]
+          "allowedLocations": ["s3://'$$MINIO_BUCKET'/*"]
         }';
 
-        export STORAGE_LOCATION="s3a://$$MINIO_BUCKET/iceberg";
+        export STORAGE_LOCATION="s3://$$MINIO_BUCKET/iceberg";
 
         source /polaris/create-catalog.sh $$POLARISHOST $$POLARIS_REALM $$CATALOG_NAME;
 
-  #        "default-base-location": "s3a://'$$MINIO_BUCKET'/iceberg",
-  #        "allowedLocations": ["s3a://'$$MINIO_BUCKET'/iceberg/*"]
-  #        export STORAGE_LOCATION="s3a://$$MINIO_BUCKET/iceberg";
 
   ################################################################################
   # Will act as a destination store for our JDBC based Flink catalog
