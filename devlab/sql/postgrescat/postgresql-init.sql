@@ -6,9 +6,9 @@ CREATE DATABASE findept;
 GRANT ALL PRIVILEGES ON DATABASE findept TO dbadmin;
 
 
-GRANT ALL PRIVILEGES ON DATABASE flink_catalog TO dbadmin;
-
 -- 2. Apache JDBC Catalog for Apache Paimon Datastore
+
+GRANT ALL PRIVILEGES ON DATABASE flink_catalog TO dbadmin;
 
 -- psql -h localhost -p 5432 -U dbadmin -d flink_catalog
 
@@ -28,6 +28,8 @@ COMMENT ON SCHEMA paimon_jdbc IS 'Flink / Paimon JDBC Catalog Storage';
 
 
 -- 3. Apache JDBC Catalog for Apache Iceberg Datastore
+
+GRANT ALL PRIVILEGES ON DATABASE flink_catalog TO dbadmin;
 
 -- psql -h localhost -p 5432 -U dbadmin -d flink_catalog
 
