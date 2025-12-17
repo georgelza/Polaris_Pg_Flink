@@ -1,8 +1,8 @@
-## Apache Polaris (incubating) as Lakehouse catalog with PostgreSQL for Persistence and Apache Flink for Processing, and MinIO as Object store.
+## Apache Iceberg with Apache Polaris as Catalog with PostgreSQL for Persistence & MinIO Object store.
 
 The following is a little explore of [Apache Polaris (incubating)](https://polaris.apache.org) as a Catalog store for Lakehouse environments,  primarily an Apache Iceberg catalog store.
 
-### First: What is Polaris and whats does it do for us
+### First: What is Apache Polaris and whats does it do for us
 
 Polaris is a catalog for data lakes. It provides new levels of choice, flexibility and control over data, with full enterprise security and Apache Iceberg interoperability across a multitude of engines and infrastructure. Polaris builds on standards such as those created by Apache Iceberg, providing the following benefits for the ecosystem:
 
@@ -21,9 +21,9 @@ The requirement originally started with me creating a application which created 
 - `accountholders`
 
 - `transactions`
+s
 
-
-These data products are inserted into our Postgres database called `demog`, which is hosted by our postgrescdc docker-compse based service.
+These data products are inserted into our Postgres database called `demog`, which is hosted by our `postgrescdc` docker-compose based service.
 
 The plan is then to consume this data stream from PostgreSQL into [Apache Flink](https://flink.apache.org) using the [Apache Flink CDC framework](https://nightlies.apache.org/flink/flink-cdc-docs-stable/). This is accomplished by defining 2 tables inside Apache Flink, referncing our Postgres database/tables.
 
@@ -46,28 +46,53 @@ And thats what a catalog does for us, it keeps track of our tables, their struct
 
 All this allows one user to create tables inside a database in one session and makes this available to another user in a different session to access that table and the contents, using the processing engine of choice.
 
-In the past, I use to use [Hive Metastore (HMS)](https://hive.apache.org)/see Central Metastore Catalog. But lets see, I like rabit holes so decided to mix things up a bit, or was that I wanted to simplify the stack (HMS is tech heavy), and here we are, lets introduce Apache Polaris (incubating) and it's REST interface as Catalog service for our Apache Iceberg based Lakehouse.
+In the past, I use to use [Hive Metastore (HMS)](https://hive.apache.org)/see Central Metastore Catalog. But lets see, I like rabit holes so decided to mix things up a bit, or was that I wanted to simplify the stack (HMS is tech heavy), and here we are, lets introduce [Apache Polaris (incubating)](https://polaris.apache.org) and it's REST interface as Catalog service for our [Apache Iceberg](https://iceberg.apache.org) based Lakehouse.
 
-Some background [Apache Polaris (incubating)](https://polaris.apache.org) is an open source project donated to the community by [Snowflake](http://snowflake.com):
+## What is a Lakehouse
+
+A data lakehouse is a modern data architecture blending the flexibility and low-cost storage of a data lake with the structure, performance, and management features of a data warehouse, creating a unified platform for diverse data types and workloads like BI, SQL, data science, and machine learning, all from one central repository. It achieves this by using open formats (like Delta Lake, Apache Iceberg, Hudi) on top of object storage, adding database-like capabilities (transactions, schema enforcement) for reliability and quality. 
+
+### Key Components & Features:
+
+Unified Storage: Stores structured, semi-structured, and unstructured data together, eliminating silos.
+Data Lake Benefits: Low-cost, scalable storage (e.g., cloud object storage) and flexibility for raw data.
+Data Warehouse Benefits: ACID transactions, schema enforcement, data quality, and performance for BI.
+Open Formats: Uses open standards (Iceberg, Delta, Hudi) for interoperability and avoiding vendor lock-in.
+Decoupled Compute & Storage: Allows independent scaling of processing power and storage.
+Diverse Workloads: Supports SQL analytics, BI, data science, and machine learning on the same data. 
+
+### Benefits:
+
+Simplified Architecture: Replaces complex multi-tiered systems with a single source of truth.
+Reduced Costs: Lowers ETL, data duplication, and storage expenses.
+Improved Governance: Easier to manage security and data quality centrally.
+Faster Insights: Enables real-time streaming and quicker access to refined data. 
+
+
+## About Apache Polaris (incubating) 
+
+Some background on [Apache Polaris (incubating)](https://polaris.apache.org) first, Polaris is an open source project donated to the community by [Snowflake](http://snowflake.com):
 
 [Apache Polaris (incubating)](https://polaris.apache.org) was initially created by engineers at [Snowflake](http://snowflake.com), who open-sourced the technology in June 2024 and contributed it to the Apache Software Foundation for incubation. [Dremio](https://www.dremio.com) was an original co-creator and has been a leading contributor to the project since its inception. 
 
 The project is now a community-driven open-source initiative under the Apache Software Foundation, with contributions from a diverse group of companies including AWS, Google Cloud, Azure, Stripe, IBM, and others. 
 
-Key individuals involved in writing and authoring guides on Apache Polaris include:
+Key individuals involved in writing and authoring guides on [Apache Polaris (incubating)](https://polaris.apache.org) include:
 
-- Alex Merced (Head of Developer Relations at Dremio), a primary author of the O'Reilly book Apache Polaris: The Definitive Guide.
+- [Alex Merced](https://www.linkedin.com/in/alexmerced/) (Head of Developer Relations at [Dremio](https://www.dremio.com)), a primary author of the O'Reilly book [Apache Polaris : The Definitive Guide]().
 
 - Andrew Madson and Tomer Shiran (Founder and Chief Product Officer of Dremio) are also listed as co-authors of the definitive guide. 
 
 
-As per previous, [Apache Polaris (incubating)](https://polaris.apache.org) is primarily an [Apache Iceberg](https://iceberg.apache.org) table format catalog, but does offer `Generic Table` functionality, enabling it to store metadata for tables other than Apache Iceberg, see: [What is a Generic Table?](https://polaris.apache.org/releases/1.2.0/generic-table/#what-is-a-generic-table).
+As per previous, [Apache Polaris (incubating)](https://polaris.apache.org) is primarily an [Apache Iceberg](https://iceberg.apache.org) table format catalog, but does offer `Generic Table` functionality, enabling it to store metadata for tables other than [Apache Iceberg](https://iceberg.apache.org), see: [What is a Generic Table?](https://polaris.apache.org/releases/1.2.0/generic-table/#what-is-a-generic-table).
 
 Also critical is catalog persistence. [Apache Polaris (incubating)](https://polaris.apache.org) just happens to natively include every to interface with PostgreSQL.
 
 BLOG: []()
 
 GIT REPO: [Polaris_Pg_Flink](https://github.com/georgelza/Polaris_pg_flink)
+
+NOTE: this project is build on the back of [Open Table Formats (Apache Iceberg and Apache Paimon) with JDBC based Catalog backed by PostgreSQL for Persistence](https://github.com/georgelza/OTF_with-JDBC_Based_Catalog_and_PostgreSQL_persistence.git) where we figured out what Jar fiile combination we need for Apache Flink/Apache Iceberg/MinIO to work together.
 
 
 ## About our Stack:
@@ -96,7 +121,7 @@ Take note of the `s3a://` usage when referring to our MinIO Object store locatio
 
 - Part of our Apache Flink Container build, (see: `<Project root>/infrastructure/flink/Dockerfile`), we create `FLINK_HOME/conf/core-site.xml` where we specify our s3 configuraiton and credentials.
 
-- Our Apache Flink catalog create, where we specifu we will be using a REST based catalog (see: `<Project root>/devlab/creFlinkFlows/1.1.creCat.sql`)
+- Our Apache Flink catalog create, where we specify we will be using a REST based catalog (see: `<Project root>/devlab/creFlinkFlows/1.1.creCat.sql`)
 
 
 ## Building and Running the environment
@@ -105,11 +130,11 @@ You're reading this file, under this directory is our `devlab`, `infrastructure`
 
 - `devlab` contains all our code to run the projects.
 
-- `infrastructure` is where our Dockerfile's are used to build the environment, in addition to Makefiles that can be used to pull and wget all the source docker containers and additional modules.
+- `infrastructure` is where our `Dockerfile`'s are used to build the environment, in addition to `Makefiles` that can be used to `docker pull` our base containers and `wget` additional `jar` modules.
 
 - `shadowtraffic` contains our data generator/config file.
   
-You will also found a configuration file used to provide various environment variables as used by our Docker-compose projects in `devlab/.env`.
+You will also found a configuration file used to provide various environment variables as used by our `Docker-compose.yaml` projects in `devlab/.env`.
 
 Our environment can be build and brough online using `devlab/Makefile`:
 
