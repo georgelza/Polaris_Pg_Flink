@@ -21,7 +21,6 @@ The requirement originally started with me creating a application which created 
 - `accountholders`
 
 - `transactions`
-s
 
 These data products are inserted into our Postgres database called `demog`, which is hosted by our `postgrescdc` docker-compose based service.
 
