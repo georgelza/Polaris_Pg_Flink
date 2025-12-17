@@ -27,21 +27,22 @@ realm=${2:-"POLARIS"}
 
 catalog=${3:-"icebergcat"}
 
-BASEDIR=$(dirname $0)
-
 echo
 echo create-catalog Params
-echo "Polaris Host:          ${polarishost}"
-echo "Realm:                 ${realm}"
-echo "Catalog:               ${catalog}"
-echo "Properties:            ${PROPERTIES}"
+echo "Polaris Host:          $polarishost"
+echo "Realm:                 $realm"
+echo "Catalog:               $catalog"
+echo "Properties:            $PROPERTIES"
 
-if [ -z "$token" ]; then
-  source $BASEDIR/obtain-token.sh ${realm}
+if [ -z "$TOKEN" ]; then
+    #  source /polaris/obtain-token.sh ${realm}
+    echo "Token Null, fetching"
+    source /polaris/obtain-token.sh $$POLARISHOST $$POLARIS_REALM $$CLIENT_ID $$CLIENT_SECRET;
+
 fi
 
 echo
-echo "Obtained access token: $token"
+echo "Obtained access token: $TOKEN"
 
 STORAGE_TYPE="FILE"
 if [ -z "${STORAGE_LOCATION}" ]; then
@@ -105,7 +106,7 @@ echo
 echo Creating a catalog named $catalog in realm $realm...
 # 1. Creating a catalog named <> in realme <>
 curl -X POST http://$polarishost:8181/api/management/v1/catalogs \
-   -H "Authorization: Bearer $token" \
+   -H "Authorization: Bearer $TOKEN" \
    -H 'Content-Type: application/json' \
    -H 'Accept: application/json' \
    -H "Polaris-Realm: $realm" \
@@ -118,7 +119,7 @@ echo
 echo Assigning Extra grants...;
 # 2. Create a catalog admin role
 curl -X PUT http://$polarishost:8181/api/management/v1/catalogs/$catalog/catalog-roles/catalog_admin/grants \
-    -H "Authorization: Bearer $token" \
+    -H "Authorization: Bearer $TOKEN" \
     -H 'Content-Type: application/json' \
     -H 'Accept: application/json' \
     -H "Polaris-Realm: $realm" \
@@ -135,7 +136,7 @@ echo Assigned CATALOG_MANAGE_CONTENT
 # 3. Create a data engineer role
 echo Creating a data engineer role;
 curl -X POST http://$polarishost:8181/api/management/v1/principal-roles \
-    -H "Authorization: Bearer $token" \
+    -H "Authorization: Bearer $TOKEN" \
     -H 'Content-Type: application/json' \
     -H 'Accept: application/json' \
     -H "Polaris-Realm: $realm" \
@@ -151,7 +152,7 @@ echo Created a data engineer role
 # 4. Connect the roles
 echo Connecting the roles;
 curl -X PUT http://$polarishost:8181/api/management/v1/principal-roles/DataEngineer/catalog-roles/$catalog \
-    -H "Authorization: Bearer $token" \
+    -H "Authorization: Bearer $TOKEN" \
     -H 'Content-Type: application/json' \
     -H 'Accept: application/json' \
     -H "Polaris-Realm: $realm" \
@@ -167,7 +168,7 @@ echo Connected the roles
 # 5.Give root the data engineer role
 echo Giving root the data engineer role
 curl -X PUT http://$polarishost:8181/api/management/v1/principals/root/principal-roles \
-    -H "Authorization: Bearer $token" \
+    -H "Authorization: Bearer $TOKEN" \
     -H 'Content-Type: application/json' \
     -H 'Accept: application/json' \
     -H "Polaris-Realm: $realm" \

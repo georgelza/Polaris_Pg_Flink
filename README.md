@@ -1,4 +1,4 @@
-## Apache Polaris (incubating) / Postgres for Persistence and Apache Flink for Processing
+## Apache Polaris (incubating) as Lakehouse catalog with PostgreSQL for Persistence and Apache Flink for Processing, and MinIO as Object store.
 
 The following is a little explore of [Apache Polaris (incubating)](https://polaris.apache.org) as a Catalog store for Lakehouse environments,  primarily an Apache Iceberg catalog store.
 
@@ -83,6 +83,22 @@ The stack goes through 3 phases, if we can call it that:
 - Run our data generation utilizing [Shadowtraffic](https://docs.shadowtraffic.io), providing us with a data stream into a PostgreSQL datastore, which we will CDC source and move around.
 
 
+## NOTES
+
+
+Take note of the `s3a://` usage when referring to our MinIO Object store locations. This is defined in our: 
+
+- `Docker-compose.yaml` file for the Jobmanager and Taskmanager service configuration. 
+
+- `Docker-compose.yaml` file for the polaris-setup service configuration. 
+
+- In the Apache Flink configuration file as part of the `fs.s3a.*` parameters, (se: `<Project root>/devlab/conf/config.yaml`)
+
+- Part of our Apache Flink Container build, (see: `<Project root>/infrastructure/flink/Dockerfile`), we create `FLINK_HOME/conf/core-site.xml` where we specify our s3 configuraiton and credentials.
+
+- Our Apache Flink catalog create, where we specifu we will be using a REST based catalog (see: `<Project root>/devlab/creFlinkFlows/1.1.creCat.sql`)
+
+
 ## Building and Running the environment
 
 You're reading this file, under this directory is our `devlab`, `infrastructure` and `shadowtraffic` sub directories.
@@ -142,7 +158,7 @@ At this point we can startup the minimum environment to make sure our Polaris/Po
 
 ### Notess
 
-During the startup cycle of our PostgreSQL datastore's, they will go through their standard bootstrap process which happens to include creating a database. If you want to create some personal bits, modify this process then you are able to place your desired SQL inside postgresql-init.sq which is mapped/moutned into the PostgreSQL container and run at startup.
+During the startup cycle of our PostgreSQL datastore's, they will go through their standard bootstrap process which happens to include creating a database. If you want to create some personal bits, modify this process then you are able to place your desired SQL inside `postgresql-init.sql` which is mapped/moutned into the PostgreSQL container and run at startup.
 
 For our datastore used for Shadowtraffic, I've placed SQL in the above script to create the following 2 tables, they will be used as target tables for ShadowTraffic and also be our source tables for Apache Flink CDC (note, I could have opted to simply have ShadowTraffic create these tables itself, but I like to do things more in line with how things happen in a production realm). For now these tables are located in a database called `demog` inside the `public` schema.
 
@@ -167,16 +183,10 @@ The following stack is deployed using one of the provided  `<Project Root>/devla
 - [Apache Polaris 1.2.0 (incubating)](https://polaris.apache.org)
 
 - [Apache Flink 1.20.1](https://flink.apache.org)                   
-
-    - There is a option to use apache Flink 1.20.2, see `infrastructure/README.md`
   
 - [Apache Flink CDC 3.5](https://nightlies.apache.org/flink/flink-cdc-docs-release-3.5/)
 
 - [Apache Iceberg 1.9.1](https://iceberg.apache.org)
-
-    - There is a option to use apache Iceberg 1.9.2, see `infrastructure/README.md`
-
-- [Apache Paimon 1.3.1](https://paimon.apache.orc)
 
 - [PostgreSQL 12](https://www.postgresql.org)
 
@@ -186,6 +196,7 @@ The following stack is deployed using one of the provided  `<Project Root>/devla
 
 
 ## By: George Leonard
+
 - georgelza@gmail.com
 - https://www.linkedin.com/in/george-leonard-945b502/
 - https://medium.com/@georgelza

@@ -21,10 +21,19 @@ set -e
 
 apk add --no-cache jq
 
-realm=${1:-"POLARIS"}
+polarishost=${1:-"polaris"}
+realm=${2:-"POLARIS"}
+client_id=${3:-""}
+client_secret=${4:-""}
 
-TOKEN=$(curl -s http://polaris:8181/api/catalog/v1/oauth/tokens \
-  --user ${CLIENT_ID}:${CLIENT_SECRET} \
+echo obtain-token
+echo "Polaris Host:    ${polarishost}"
+echo "Realm:           ${realm}"
+echo "client_id:       ${client_id}"
+echo "client_secret:   ${client_secret}"
+
+TOKEN=$(curl -s http://${polarishost}:8181/api/catalog/v1/oauth/tokens \
+  --user ${client_id}:${client_secret} \
   -H "Polaris-Realm: $realm" \
   -d grant_type=client_credentials \
   -d scope=PRINCIPAL_ROLE:ALL | jq -r .access_token)

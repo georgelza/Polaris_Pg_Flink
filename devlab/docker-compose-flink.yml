@@ -16,13 +16,13 @@ configs:
     file: conf/pg_hba.conf
 
 services:
-  ################################################################################
+ ################################################################################
   # begin Flink cluster
   #
   # Lots of Jar's added to the base image, Fluss, JDBC, PostgreSQL, Paimon, S3
   ################################################################################
   jobmanager:
-    image: georgelza/apacheflink-base-1.20.1-scala_2.12-java17:1.0.0
+    image: ${REPO_NAME}/apacheflink-base-1.20.1-scala_2.12-java17:1.0.0
     hostname: jobmanager
     container_name: jobmanager
     ports:
@@ -36,7 +36,7 @@ services:
       - AWS_DEFAULT_REGION=${AWS_REGION}
 
       # *** ADD THESE HADOOP S3A VARIABLES AS BACKUP ***
-      - HADOOP_CONF_DIR=/opt/flink/conf  # Ensure core-site.xml is found
+      - HADOOP_CONF_DIR=/opt/flink/conf           # Ensure core-site.xml is found
       - fs.s3a.access.key=${MINIO_ROOT_USER}      # Use fs.s3a.access.key
       - fs.s3a.secret.key=${MINIO_ROOT_PASSWORD}  # Use fs.s3a.secret.key
       - fs.s3a.endpoint=${MINIO_ENDPOINT}         # Explicitly set the endpoint
@@ -58,7 +58,7 @@ services:
     command: jobmanager
 
   taskmanager:
-    image: georgelza/apacheflink-base-1.20.1-scala_2.12-java17:1.0.0
+    image: ${REPO_NAME}/apacheflink-base-1.20.1-scala_2.12-java17:1.0.0
     depends_on:
       - jobmanager
     deploy:
@@ -72,7 +72,7 @@ services:
       - AWS_DEFAULT_REGION=${AWS_REGION}
 
       # *** ADD THESE HADOOP S3A VARIABLES AS BACKUP ***
-      - HADOOP_CONF_DIR=/opt/flink/conf  # Ensure core-site.xml is found
+      - HADOOP_CONF_DIR=/opt/flink/conf           # Ensure core-site.xml is found
       - fs.s3a.access.key=${MINIO_ROOT_USER}      # Use fs.s3a.access.key
       - fs.s3a.secret.key=${MINIO_ROOT_PASSWORD}  # Use fs.s3a.secret.key
       - fs.s3a.endpoint=${MINIO_ENDPOINT}         # Explicitly set the endpoint
@@ -92,6 +92,7 @@ services:
         target: /opt/flink/conf/log4j-session.properties
     command: taskmanager
   ################################################################################
+
 
 
   ################################################################################
@@ -202,15 +203,15 @@ services:
         chmod +x /polaris/create-catalog.sh;
         chmod +x /polaris/obtain-token.sh;
 
-        source /polaris/obtain-token.sh $$POLARIS_REALM;
+        source /polaris/obtain-token.sh $$POLARISHOST $$POLARIS_REALM $$CLIENT_ID $$CLIENT_SECRET;
         
         export PROPERTIES='{
-          "default-base-location": "s3://'$$MINIO_BUCKET'/iceberg",
-          "s3.endpoint": "'$$MINIO_ENDPOINT'",
-          "s3.path-style-access": true,
-          "s3.access-key-id": "'$$MINIO_ROOT_USER'",
-          "s3.secret-access-key": "'$$MINIO_ROOT_PASSWORD'",
-          "s3.region": "'$$AWS_REGION'"
+          "default-base-location": "s3a://'$$MINIO_BUCKET'/iceberg",
+          "s3a.endpoint": "'$$MINIO_ENDPOINT'",
+          "s3a.path-style-access": true,
+          "s3a.access-key-id": "'$$MINIO_ROOT_USER'",
+          "s3a.secret-access-key": "'$$MINIO_ROOT_PASSWORD'",
+          "s3a.region": "'$$AWS_REGION'"
         }';
 
         export STORAGE_CONFIG_INFO='{
@@ -219,15 +220,17 @@ services:
           "endpointInternal": "'$$MINIO_ENDPOINT'",
           "region": "'$$AWS_REGION'",
           "pathStyleAccess": true,
-          "allowedLocations": ["s3://'$$MINIO_BUCKET'/*"]
+          "allowedLocations": ["s3a://'$$MINIO_BUCKET'/iceberg/*"]
         }';
 
-        export STORAGE_LOCATION="s3://$$MINIO_BUCKET/iceberg";
+        echo 
+
+        export STORAGE_LOCATION="s3a://$$MINIO_BUCKET/iceberg";
 
         source /polaris/create-catalog.sh $$POLARISHOST $$POLARIS_REALM $$CATALOG_NAME;
 
 
-  ################################################################################
+ ################################################################################
   # Will act as a destination store for our JDBC based Flink catalog
   ################################################################################
   postgrescat:
@@ -252,6 +255,7 @@ services:
       - source: postgres_hba
         target: /etc/postgresql/data/pg_hba.conf
     command: -c config_file=/etc/postgresql/postgresql.conf
+
 
   ################################################################################
   # Will act as a destination store from where we will CDC our data to be embedded
@@ -338,22 +342,17 @@ services:
       mc rm -r --force ${MINIO_ALIAS}/${MINIO_BUCKET};  
 
       mc mb ${MINIO_ALIAS}/${MINIO_BUCKET}/iceberg --ignore-existing;
-      mc mb ${MINIO_ALIAS}/${MINIO_BUCKET}/iceberg_jdbc --ignore-existing;
-      mc mb ${MINIO_ALIAS}/${MINIO_BUCKET}/paimon_jdbc --ignore-existing;
 
       mc policy set public ${MINIO_ALIAS}/${MINIO_BUCKET}/iceberg;
-      mc policy set public ${MINIO_ALIAS}/${MINIO_BUCKET}/iceberg_jdbc;
-      mc policy set public ${MINIO_ALIAS}/${MINIO_BUCKET}/paimon_jdbc;
 
       mc anonymous set public ${MINIO_ALIAS}/${MINIO_BUCKET}/iceberg;
-      mc anonymous set public ${MINIO_ALIAS}/${MINIO_BUCKET}/iceberg_jdbc;
-      mc anonymous set public ${MINIO_ALIAS}/${MINIO_BUCKET}/paimon_jdbc;
 
       mc ls ${MINIO_ALIAS};
 
       echo "MinIO bucket '${MINIO_ALIAS}/${MINIO_BUCKET}' created successfully";
       tail -f /dev/null
       "
+
 
   ################################################################################
 

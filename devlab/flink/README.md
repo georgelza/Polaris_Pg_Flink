@@ -1,5 +1,5 @@
 ## Apache Flink Image
 
-Using: 1.20.2
+Using: 1.20.1
 
-See `<Project root>/infratructure/flink` for the building of our flink base image.
+Build via `<Project root>/infratructure/flink`.
