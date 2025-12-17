@@ -4,7 +4,7 @@ The following is a little explore of [Apache Polaris (incubating)](https://polar
 
 ### First: What is Apache Polaris and whats does it do for us
 
-Polaris is a catalog for data lakes. It provides new levels of choice, flexibility and control over data, with full enterprise security and Apache Iceberg interoperability across a multitude of engines and infrastructure. Polaris builds on standards such as those created by Apache Iceberg, providing the following benefits for the ecosystem:
+Polaris is a catalog for data lakes. It provides new levels of choice, flexibility and control over data, with full enterprise security and [Apache Iceberg](https://iceberg.apache.org) interoperability across a multitude of engines and infrastructure. Polaris builds on standards such as those created by [Apache Iceberg](https://iceberg.apache.org), providing the following benefits for the ecosystem:
 
 - Multi-engine interoperability over a single copy of data, eliminating the need for moving and copying data across different engines and catalogs.
 - An interoperable security model providing a unified authorization layer independent from the engines processing analytical tables.
@@ -22,19 +22,22 @@ The requirement originally started with me creating a application which created 
 
 - `transactions`
 
-These data products are inserted into our Postgres database called `demog`, which is hosted by our `postgrescdc` docker-compose based service.
 
-The plan is then to consume this data stream from PostgreSQL into [Apache Flink](https://flink.apache.org) using the [Apache Flink CDC framework](https://nightlies.apache.org/flink/flink-cdc-docs-stable/). This is accomplished by defining 2 tables inside Apache Flink, referncing our Postgres database/tables.
+These data products are inserted into our [Postgres](https://www.postgresql.org) database called `demog`, which is hosted by our `postgrescdc` docker-compose based service.
+
+The plan is then to consume this data stream from PostgreSQL into [Apache Flink](https://flink.apache.org) using the [Apache Flink CDC framework](https://nightlies.apache.org/flink/flink-cdc-docs-stable/). This is accomplished by defining 2 tables inside [Apache Flink](https://flink.apache.org), referncing our [Postgres](https://www.postgresql.org) database/tables.
 
 From here we can then work with this data. This would normally be via either Java based jobs, Python based jobs via PyFlink framework or using Apache Flink SQL.
 
 The output of these processing step are records insert into a Lakehouse tables, referred to as an Open Table Formats, the most popular being:
 
-- Apache Iceberg
+- [Apache Iceberg](https://iceberg.apache.org)
 
-- Apache Paimon
+- [Apache Paimon](https://paimon.apache.org)
 
-- Apache Hudi
+- [Apache Hudi](https://hudi.apache.org)
+
+- [Delta Lake](https://delta.io)
 
 
 Now, a phone book, ye I'm old enough to know what thye looked like was useless without the index at the back. That index was a sort of catalog of the records contained in the book, 
@@ -45,27 +48,36 @@ And thats what a catalog does for us, it keeps track of our tables, their struct
 
 All this allows one user to create tables inside a database in one session and makes this available to another user in a different session to access that table and the contents, using the processing engine of choice.
 
-In the past, I use to use [Hive Metastore (HMS)](https://hive.apache.org)/see Central Metastore Catalog. But lets see, I like rabit holes so decided to mix things up a bit, or was that I wanted to simplify the stack (HMS is tech heavy), and here we are, lets introduce [Apache Polaris (incubating)](https://polaris.apache.org) and it's REST interface as Catalog service for our [Apache Iceberg](https://iceberg.apache.org) based Lakehouse.
+In the past, I use to use [Hive Metastore (HMS)](https://hive.apache.org)/see Central Metastore Catalog. But lets see, I like rabit holes so decided to mix things up a bit, or was that I wanted to simplify the stack (HMS is tech heavy), and here we are, lets introduce [Apache Polaris (incubating)](https://polaris.apache.org) and it's [REST](https://en.wikipedia.org/wiki/REST) interface as Catalog service for our [Apache Iceberg](https://iceberg.apache.org) based Lakehouse.
 
 ## What is a Lakehouse
 
-A data lakehouse is a modern data architecture blending the flexibility and low-cost storage of a data lake with the structure, performance, and management features of a data warehouse, creating a unified platform for diverse data types and workloads like BI, SQL, data science, and machine learning, all from one central repository. It achieves this by using open formats (like Delta Lake, Apache Iceberg, Hudi) on top of object storage, adding database-like capabilities (transactions, schema enforcement) for reliability and quality. 
+A data lakehouse is a modern data architecture blending the flexibility and low-cost storage of a data lake with the structure, performance, and management features of a data warehouse, creating a unified platform for diverse data types and workloads like BI, SQL, data science, and machine learning, all from one central repository. It achieves this by using open formats (like [Delta Lake](https://delta.io), [Apache Iceberg](https://iceberg.apache.org), [Apache Hudi](https://hudi.apache.org)) on top of object storage, adding database-like capabilities (transactions, schema enforcement) for reliability and quality. 
+
 
 ### Key Components & Features:
 
-Unified Storage: Stores structured, semi-structured, and unstructured data together, eliminating silos.
-Data Lake Benefits: Low-cost, scalable storage (e.g., cloud object storage) and flexibility for raw data.
-Data Warehouse Benefits: ACID transactions, schema enforcement, data quality, and performance for BI.
-Open Formats: Uses open standards (Iceberg, Delta, Hudi) for interoperability and avoiding vendor lock-in.
-Decoupled Compute & Storage: Allows independent scaling of processing power and storage.
-Diverse Workloads: Supports SQL analytics, BI, data science, and machine learning on the same data. 
+- Unified Storage: Stores structured, semi-structured, and unstructured data together, eliminating silos.
+
+- Data Lake Benefits: Low-cost, scalable storage (e.g., cloud object storage) and flexibility for raw data.
+
+- Data Warehouse Benefits: ACID transactions, schema enforcement, data quality, and performance for BI.
+
+- Open Formats: Uses open standards (Iceberg, Delta, Hudi) for interoperability and avoiding vendor lock-in.
+
+- Decoupled Compute & Storage: Allows independent scaling of processing power and storage.
+
+- Diverse Workloads: Supports SQL analytics, BI, data science, and machine learning on the same data. 
 
 ### Benefits:
 
-Simplified Architecture: Replaces complex multi-tiered systems with a single source of truth.
-Reduced Costs: Lowers ETL, data duplication, and storage expenses.
-Improved Governance: Easier to manage security and data quality centrally.
-Faster Insights: Enables real-time streaming and quicker access to refined data. 
+- Simplified Architecture: Replaces complex multi-tiered systems with a single source of truth.
+
+- Reduced Costs: Lowers ETL, data duplication, and storage expenses.
+
+- Improved Governance: Easier to manage security and data quality centrally.
+
+- Faster Insights: Enables real-time streaming and quicker access to refined data. 
 
 
 ## About Apache Polaris (incubating) 
@@ -80,7 +92,7 @@ Key individuals involved in writing and authoring guides on [Apache Polaris (inc
 
 - [Alex Merced](https://www.linkedin.com/in/alexmerced/) (Head of Developer Relations at [Dremio](https://www.dremio.com)), a primary author of the O'Reilly book [Apache Polaris : The Definitive Guide]().
 
-- Andrew Madson and Tomer Shiran (Founder and Chief Product Officer of Dremio) are also listed as co-authors of the definitive guide. 
+- [Andrew Madson](https://www.linkedin.com/in/andrew-madson/) and [Tomer Shiran](https://www.linkedin.com/in/tshiran/) (Founder and Chief Product Officer of [Dremio](https://www.dremio.com)) are also listed as co-authors of the definitive guide. 
 
 
 As per previous, [Apache Polaris (incubating)](https://polaris.apache.org) is primarily an [Apache Iceberg](https://iceberg.apache.org) table format catalog, but does offer `Generic Table` functionality, enabling it to store metadata for tables other than [Apache Iceberg](https://iceberg.apache.org), see: [What is a Generic Table?](https://polaris.apache.org/releases/1.2.0/generic-table/#what-is-a-generic-table).
