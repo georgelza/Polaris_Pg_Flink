@@ -205,19 +205,21 @@ For our datastore used for Shadowtraffic, I've placed SQL in the above script to
 
 ### Management interfaces
 
+- Polaris Console: http://localhost:4000  ([Polaris Tools / Console](https://github.com/apache/polaris-tools/tree/main/console))
 - Polaris: http://localhost:8181 (Client API)
 - Polaris: http://localhost:8181 (Management API)
 - Flink UI: http://localhost:8084 (Console)
 - MinIO API: http://localhost:9000 (Client API)
 - MinIO UI: http://localhost:9001 (Console, mnadmin/mnpassword)
-  
-LATE: Add: Apache Polaris Project has recently released a UI/Console as part of the **Polaris Tools Project**, see: [Polaris Tools](https://github.com/apache/polaris-tools/tree/main/console)
+
 
 ## Software/package versions
 
 The following stack is deployed using one of the provided  `<Project Root>/devlab/docker-compose-*.yaml` files as per above.
 
 - [Apache Polaris 1.2.0 (incubating)](https://polaris.apache.org)
+
+- [Apache Polaris (incubating) - Tools](https://github.com/apache/polaris-tools/tree/main/console)
 
 - [Apache Flink 1.20.1](https://flink.apache.org)                   
   
@@ -230,6 +232,27 @@ The following stack is deployed using one of the provided  `<Project Root>/devla
 - [MinIO](https://www.min.io) - Project has gone into Maintenance mode... 
 
 - [Shadowtraffic](https://docs.shadowtraffic.io)
+
+
+So, Up to here was the original Blog… ;) see more Rabbit Holes, I was asked to have a look at the **Polaris Tools** and the included console. Originally, seeing I was required to git clone, npm build etc etc… was not sure if I wanted to take the wonder down the Rabbit hole, but ye well, then had time and there I went. 
+
+For those interested, I pushed the docker image to my personal [docker hub repo](https://hub.docker.com/repository/docker/georgelza/polaris-console/general). Sure the project will host it themselves soon also.
+
+And am I glad I did. Below are just a couple of screen shots of the various screens, and information contained.
+
+Some notes, See the additional information added to the `.env` file. We also now have a `Polaris-tools` docker-compose service defined.
+When you try and log in, and first thing you wonder, what’s the username and password, you will notice the field tags, `client_id` and `client_secret`, as per our `.env` file, in our case `root` & `s3cr3t`
+
+
+```yaml
+# Polaris Console -> matching our <Project root>/devlab/.env values
+VITE_POLARIS_API_URL=http://polaris:8181
+VITE_POLARIS_REALM=findept 
+VITE_POLARIS_REALM_HEADER_NAME=Polaris-Realm                    # optional, defaults to "Polaris-Realm"
+VITE_OAUTH_TOKEN_URL=http://polaris:8181/api/v1/oauth/tokens    # optional
+```
+
+- **See screen grab Images**: `<Project root>/blog-doc/polaris-tools/*`
 
 
 ## By: George Leonard

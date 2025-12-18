@@ -229,6 +229,21 @@ services:
 
         source /polaris/create-catalog.sh $$POLARISHOST $$POLARIS_REALM $$CATALOG_NAME;
 
+  polaris-console:
+    image: georgelza/polaris-console:latest
+    hostname: polaris-console
+    container_name: polaris-console
+    depends_on:
+      polaris:
+        condition: service_healthy
+    ports: 
+      - 4000:80                                                       # Rather than 8080
+    environment:
+      - VITE_POLARIS_API_URL=${VITE_POLARIS_API_URL}
+      - VITE_POLARIS_REALM=${VITE_POLARIS_REALM}
+      - VITE_POLARIS_REALM_HEADER_NAME=Polaris-Realm                  # optional, defaults to "Polaris-Realm"
+      - VITE_OAUTH_TOKEN_URL=http://polaris:8181/api/v1/oauth/tokens  # optional
+
 
  ################################################################################
   # Will act as a destination store for our JDBC based Flink catalog

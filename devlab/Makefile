@@ -53,7 +53,7 @@ run:
 		jobmanager taskmanager \
  		postgrescat postgrescdc \
 		minio minio-client \
-		polaris polaris-bootstrap polaris-setup \
+		polaris polaris-bootstrap polaris-setup polaris-console \
 		--remove-orphans
 	@echo "✅ Flink & Polaris Catalog LAB services started successfully"
 .PHONY: run
