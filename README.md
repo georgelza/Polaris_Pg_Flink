@@ -90,7 +90,7 @@ The project is now a community-driven open-source initiative under the Apache So
 
 Key individuals involved in writing and authoring guides on [Apache Polaris (incubating)](https://polaris.apache.org) include:
 
-- [Alex Merced](https://www.linkedin.com/in/alexmerced/) (Head of Developer Relations at [Dremio](https://www.dremio.com)), a primary author of the O'Reilly book [Apache Polaris : The Definitive Guide]().
+- [Alex Merced](https://www.linkedin.com/in/alexmerced/) (Head of Developer Relations at [Dremio](https://www.dremio.com)), a primary author of the O'Reilly book [Apache Polaris : The Definitive Guide](https://hello.dremio.com/wp-apache-polaris-guide-reg.html).
 
 - [Andrew Madson](https://www.linkedin.com/in/andrew-madson/) and [Tomer Shiran](https://www.linkedin.com/in/tshiran/) (Founder and Chief Product Officer of [Dremio](https://www.dremio.com)) are also listed as co-authors of the definitive guide. 
 
@@ -192,7 +192,7 @@ At this point we can startup the minimum environment to make sure our Polaris/Po
    - `make down`
 
 
-### Notess
+### Notes
 
 During the startup cycle of our PostgreSQL datastore's, they will go through their standard bootstrap process which happens to include creating a database. If you want to create some personal bits, modify this process then you are able to place your desired SQL inside `postgresql-init.sql` which is mapped/moutned into the PostgreSQL container and run at startup.
 
@@ -211,6 +211,7 @@ For our datastore used for Shadowtraffic, I've placed SQL in the above script to
 - MinIO API: http://localhost:9000 (Client API)
 - MinIO UI: http://localhost:9001 (Console, mnadmin/mnpassword)
   
+LATE: Add: Apache Polaris Project has recently released a UI/Console as part of the **Polaris Tools Project**, see: [Polaris Tools](https://github.com/apache/polaris-tools/tree/main/console)
 
 ## Software/package versions
 

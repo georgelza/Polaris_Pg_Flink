@@ -31,7 +31,6 @@ CREATE CATALOG c_iceberg WITH (
 
 USE CATALOG c_iceberg;
 CREATE DATABASE IF NOT EXISTS c_iceberg.finflow;
-SHOW DATABASES;
 
 
 -- next execute 2.1
