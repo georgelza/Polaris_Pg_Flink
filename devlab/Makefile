@@ -88,5 +88,8 @@ watch:
 fsql:
 	docker compose exec --interactive --tty jobmanager /opt/flink/bin/sql-client.sh
 
+deploy:
+	docker compose exec --interactive --tty jobmanager /opt/flink/bin/sql-client.sh -f /creFlinkFlows/master.sql
+
 jm:
 	docker compose exec --interactive --tty jobmanager /bin/bash

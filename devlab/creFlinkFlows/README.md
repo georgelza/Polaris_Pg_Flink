@@ -30,3 +30,9 @@ This will create our 2 transciant CDC based tables (`demog` database with `c_cdc
 Create our 2 Iceberg tables in our `finflow` database in our `c_iceberg` catalog, managed using Apache Polaris
 
 
+### master.sql
+
+Or all in one go by executing:
+
+-  `make deploy`
+

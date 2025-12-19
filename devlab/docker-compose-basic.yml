@@ -124,7 +124,6 @@ services:
           -d '{"type":"catalog", "privilege":"CATALOG_MANAGE_CONTENT"}';
         echo Polaris Setup Complete.;
 
-
   ################################################################################
   # Will act as a destination store for our JDBC based Flink catalog
   ################################################################################
@@ -151,10 +150,9 @@ services:
         target: /etc/postgresql/data/pg_hba.conf
     command: -c config_file=/etc/postgresql/postgresql.conf
 
-
-    ################################################################################
-    # MinIO Object Storage - S3 Compatible Storage
-    ################################################################################  
+  ################################################################################
+  # MinIO Object Storage - S3 Compatible Storage
+  ################################################################################  
   minio:
     image: quay.io/minio/minio:RELEASE.2024-12-18T13-15-44Z
     hostname: minio
@@ -182,7 +180,6 @@ services:
       retries: 3
       start_period: 5s
     command: ["server", "/data", "--console-address", ":9001"]
-
 
   minio-client:
     image: minio/mc:latest
@@ -212,8 +209,7 @@ services:
       tail -f /dev/null
       "
 
-  ################################################################################
-
+################################################################################
 # Without a network explicitly defined, you hit this Hive/Thrift error
 # java.net.URISyntaxException Illegal character in hostname
 # https://github.com/TrivadisPF/platys-modern-data-platform/issues/231

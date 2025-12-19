@@ -42,7 +42,7 @@ services:
       - fs.s3a.endpoint=${MINIO_ENDPOINT}         # Explicitly set the endpoint
       - fs.s3a.path.style.access=true             # Explicitly set path style access
     volumes:
-
+      - ./creFlinkFlows:/creFlinkFlows
       - ./data/flink/logs:/opt/flink/log
       - ./data/flink/checkpoints:/opt/flink/checkpoints
       - ./data/flink/rocksdb:/opt/flink/rocksdb
@@ -78,6 +78,7 @@ services:
       - fs.s3a.endpoint=${MINIO_ENDPOINT}         # Explicitly set the endpoint
       - fs.s3a.path.style.access=true             # Explicitly set path style access
     volumes:
+      - ./creFlinkFlows:/creFlinkFlows
       - ./data/flink/logs:/opt/flink/log
       - ./data/flink/checkpoints:/opt/flink/checkpoints
       - ./data/flink/rocksdb:/opt/flink/rocksdb
@@ -244,8 +245,7 @@ services:
       - VITE_POLARIS_REALM_HEADER_NAME=Polaris-Realm                  # optional, defaults to "Polaris-Realm"
       - VITE_OAUTH_TOKEN_URL=http://polaris:8181/api/v1/oauth/tokens  # optional
 
-
- ################################################################################
+  ################################################################################
   # Will act as a destination store for our JDBC based Flink catalog
   ################################################################################
   postgrescat:
@@ -270,7 +270,6 @@ services:
       - source: postgres_hba
         target: /etc/postgresql/data/pg_hba.conf
     command: -c config_file=/etc/postgresql/postgresql.conf
-
 
   ################################################################################
   # Will act as a destination store from where we will CDC our data to be embedded
@@ -330,7 +329,6 @@ services:
       start_period: 5s
     command: ["server", "/data", "--console-address", ":9001"]
 
-
   minio-client:
     image: minio/mc:latest
     hostname: mc
@@ -368,9 +366,7 @@ services:
       tail -f /dev/null
       "
 
-
-  ################################################################################
-
+################################################################################
 # Without a network explicitly defined, you hit this Hive/Thrift error
 # java.net.URISyntaxException Illegal character in hostname
 # https://github.com/TrivadisPF/platys-modern-data-platform/issues/231

@@ -1,15 +1,24 @@
 
 
+-- NOT WORKING
+-- Execute script 1: Create Catalogs
+-- SOURCE '/creFlinkFlows/1.1.creCat.sql';
+
+-- Execute script 2: Create CDC Source Tables
+-- SOURCE '/creFlinkFlows/2.1.creCdc.sql';
+
+-- Execute script 3: Create our CATS create table / insert jobs
+-- SOURCE '/creFlinkFlows/3.1.creTarget.sql';
+
+
 -- Switch to the c_cdcsource catalog
 USE CATALOG c_cdcsource;
 
 -- Create database in current catalog
 CREATE DATABASE IF NOT EXISTS demog;
 
--- Use the database
 USE demog;
 
--- CDC Sources (now using simple table names since context is set)
 CREATE OR REPLACE TABLE accountholders_iceberg (
      _id                BIGINT                  NOT NULL
     ,nationalid         VARCHAR(16)             NOT NULL
@@ -38,8 +47,6 @@ CREATE OR REPLACE TABLE accountholders_iceberg (
     ,'scan.startup.mode'                   = 'initial'            
     ,'decoding.plugin.name'                = 'pgoutput'
 );
--- experimental feature: incremental snapshot (default off)
--- https://nightlies.apache.org/flink/flink-cdc-docs-release-3.1/docs/connectors/flink-sources/postgres-cdc/#startup-reading-position
 
 
 CREATE OR REPLACE TABLE transactions_iceberg (
@@ -71,4 +78,26 @@ CREATE OR REPLACE TABLE transactions_iceberg (
     ,'decoding.plugin.name'                = 'pgoutput'
 );
 
--- now see 3.1.creTarget.sql
+
+USE CATALOG c_iceberg;
+
+-- Create database in current catalog
+CREATE DATABASE IF NOT EXISTS finflow;
+
+USE finflow;
+
+SET 'execution.runtime-mode'            = 'streaming';
+SET 'execution.checkpointing.interval'  = '60s';
+
+SET 'pipeline.name' = 'Persist into Iceberg-Polars: accountholders table';
+
+CREATE OR REPLACE TABLE c_iceberg.finflow.accountholders AS 
+    SELECT * FROM c_cdcsource.demog.accountholders_iceberg;
+
+
+SET 'pipeline.name' = 'Persist into Iceberg-Polars: transactions table';
+
+CREATE OR REPLACE TABLE c_iceberg.finflow.transactions AS 
+    SELECT * FROM c_cdcsource.demog.transactions_iceberg;
+
+

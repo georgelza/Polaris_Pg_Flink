@@ -1,10 +1,11 @@
 
 USE CATALOG default_catalog;
-  
--- Inbound from PostgreSQL via CDC Process
+
+-- We moved the c_cdcsource generic_in_memory catalog create to 2.1.creCdc.sql as it needs to be recreated together with the table creations
+-- on every session.
+
 CREATE CATALOG c_cdcsource WITH 
     ('type'='generic_in_memory'); 
-
 
 CREATE DATABASE IF NOT EXISTS c_cdcsource.demog;  
 
